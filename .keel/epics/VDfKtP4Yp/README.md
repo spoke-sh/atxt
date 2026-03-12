@@ -23,5 +23,5 @@ index: 2
 **Progress:** 0/1 voyages complete, 0/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Still Image Decode and Txtplot Rendering](voyages/VDfLYKNEX/) | planned | 0/3 |
+| [Still Image Decode and Txtplot Rendering](voyages/VDfLYKNEX/) | in-progress | 0/3 |
 <!-- END GENERATED -->

@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:21:37.620384200-07:00
+mode: manual
+---
+Added the canonical VisualFrame and Rgba8 still-image contract with validation tests covering dimensions, pixel count, and deterministic pixel access.

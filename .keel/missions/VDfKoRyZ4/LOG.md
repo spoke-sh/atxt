@@ -6,3 +6,7 @@
 ## 2026-03-12T08:09:30
 
 Created mission VDfKoRyZ4 for the first static image rendering vertical slice, linked epic VDfKtP4Yp and planned voyage VDfLYKNEX, and thawed stories VDfM43AVP, VDfM40eXl, and VDfM426Xm into backlog. The slice is scoped around a canonical still-image frame model, a static-image decode path, a txtplot-backed braille renderer, an internal ASCII fallback, a thin CLI render command, and deterministic verification fixtures.
+
+## 2026-03-12T08:23:28
+
+Completed story VDfM43AVP and landed the first static-image frame/decode slice. atxt now exposes a canonical VisualFrame contract plus decode_still_image for path-based PNG/JPEG/BMP-class static image decoding with deterministic cargo-test coverage and no live terminal dependency. The next operator slice is VDfM40eXl for txtplot-backed braille rendering and ASCII fallback.

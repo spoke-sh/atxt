@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:21:44.467872650-07:00
+mode: manual
+---
+Implemented decode_still_image as a path-based static-image decoder using the image crate, with tests that decode representative PNG, JPEG, and BMP fixtures into the shared frame model.

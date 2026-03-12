@@ -15,5 +15,5 @@
 
 | Voyage | Status |
 |--------|--------|
-| [Still Image Decode and Txtplot Rendering](epics/VDfKtP4Yp/voyages/VDfLYKNEX/) | planned |
+| [Still Image Decode and Txtplot Rendering](epics/VDfKtP4Yp/voyages/VDfLYKNEX/) | in-progress |
 

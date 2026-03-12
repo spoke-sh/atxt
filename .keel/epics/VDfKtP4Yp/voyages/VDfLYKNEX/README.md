@@ -1,11 +1,12 @@
 ---
 id: VDfLYKNEX
 title: Still Image Decode and Txtplot Rendering
-status: planned
+status: in-progress
 epic: VDfKtP4Yp
 created_at: 2026-03-12T08:06:36
 index: 1
 updated_at: 2026-03-12T08:09:10
+started_at: 2026-03-12T08:17:17
 ---
 
 # Still Image Decode and Txtplot Rendering
@@ -30,5 +31,5 @@ updated_at: 2026-03-12T08:09:10
 |-------|------|--------|
 | [Implement Txtplot Braille Renderer and ASCII Fallback](../../../../stories/VDfM40eXl/README.md) | feat | backlog |
 | [Add Still Image CLI and Verification Fixtures](../../../../stories/VDfM426Xm/README.md) | feat | backlog |
-| [Define Still Image Frame Model and Decode Path](../../../../stories/VDfM43AVP/README.md) | feat | backlog |
+| [Define Still Image Frame Model and Decode Path](../../../../stories/VDfM43AVP/README.md) | feat | in-progress |
 <!-- END GENERATED -->

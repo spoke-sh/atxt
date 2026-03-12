@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:21:57.442067814-07:00
+mode: manual
+---
+The shared frame and decode behavior are covered by cargo test and do not require a live interactive terminal session; the tests generate temporary image fixtures on disk and assert deterministic decoded results.
