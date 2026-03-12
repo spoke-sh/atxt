@@ -23,6 +23,9 @@ doctest:
 
 quality: fmt-check cargo-check clippy
 
+keel *args:
+  keel {{args}}
+
 coverage args="":
   mkdir -p coverage
   if [[ -n "{{args}}" ]]; then cargo llvm-cov nextest {{args}}; else cargo llvm-cov nextest --lcov --output-path ./coverage/lcov.info; fi
