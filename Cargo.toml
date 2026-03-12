@@ -1,0 +1,9 @@
+[package]
+name = "atext"
+version = "0.1.0"
+edition = "2024"
+description = "Render media as text for terminals, SSH, tmux, and verification workflows"
+publish = false
+
+[lib]
+path = "src/lib.rs"
