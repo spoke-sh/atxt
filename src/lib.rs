@@ -18,7 +18,10 @@ pub use media::{
     probe_path,
 };
 pub use render::{OutputKind, PlanningReason, RenderIntent, RenderMode, RenderPlan, plan_render};
-pub use sequence::{TimedFrameSample, TimedVisualSequence, TimedVisualSequenceError};
+pub use sequence::{
+    TimedFrameSample, TimedSequenceDecodeError, TimedSequenceSummaryError, TimedVisualSequence,
+    TimedVisualSequenceError, decode_timed_sequence, summarize_timed_sequence,
+};
 pub use still_image::{StillImageRenderError, render_still_image};
 pub use terminal::{
     ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,

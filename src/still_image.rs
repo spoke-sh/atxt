@@ -40,6 +40,7 @@ pub fn render_still_image(
 ) -> Result<String, StillImageRenderError> {
     match (plan.intent.mode, plan.output) {
         (RenderMode::Braille, OutputKind::SingleFrame) => Ok(render_braille(frame, plan)),
+        (RenderMode::ContactSheet, OutputKind::SingleFrame) => Ok(render_braille(frame, plan)),
         (RenderMode::Ascii, OutputKind::SingleFrame) => Ok(render_ascii(frame, plan)),
         (mode, output) => Err(StillImageRenderError::UnsupportedPlan { mode, output }),
     }
@@ -247,15 +248,15 @@ mod tests {
             .expect("frame should validate");
         let plan = RenderPlan {
             intent: crate::render::RenderIntent {
-                mode: RenderMode::ContactSheet,
+                mode: RenderMode::Braille,
                 max_width_cells: Some(1),
                 max_height_cells: Some(1),
-                frame_rate_hint: None,
+                frame_rate_hint: Some(6),
                 color_enabled: false,
             },
-            output: OutputKind::SingleFrame,
-            degraded: true,
-            reason: crate::render::PlanningReason::CapturedSequenceFallback,
+            output: OutputKind::FrameSequence,
+            degraded: false,
+            reason: crate::render::PlanningReason::Direct,
         };
 
         let error = render_still_image(&frame, &plan).unwrap_err();
@@ -263,8 +264,8 @@ mod tests {
         assert_eq!(
             error,
             StillImageRenderError::UnsupportedPlan {
-                mode: RenderMode::ContactSheet,
-                output: OutputKind::SingleFrame,
+                mode: RenderMode::Braille,
+                output: OutputKind::FrameSequence,
             }
         );
     }
