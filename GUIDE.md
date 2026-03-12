@@ -21,6 +21,9 @@ nix develop
 
 ```bash
 just
+just mission
+just signal
+just mission-status
 just fmt
 just cargo-check
 just clippy

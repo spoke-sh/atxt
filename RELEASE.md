@@ -28,6 +28,7 @@ If the release changes behavior or positioning, review and update:
 ### 3. Run the checks
 
 ```bash
+just mission
 just check
 just flake-check
 ```

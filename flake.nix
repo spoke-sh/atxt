@@ -81,6 +81,7 @@
             pkgs.cargo-llvm-cov
             pkgs.just
             pkgs.ffmpeg
+            pkgs.util-linux
             pkgs.vhs
             pkgs.pkg-config
             keelPkg
