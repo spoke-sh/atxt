@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:27:33.903966961-07:00
+mode: manual
+---
+Added a txtplot-backed braille renderer that maps a normalized VisualFrame into BrailleCanvas pixels and proved it with a full-cell render test.

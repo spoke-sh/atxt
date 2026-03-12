@@ -25,11 +25,11 @@ started_at: 2026-03-12T08:17:17
 ## Stories
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/3 stories complete
+**Progress:** 1/3 stories complete
 
 | Title | Type | Status |
 |-------|------|--------|
-| [Implement Txtplot Braille Renderer and ASCII Fallback](../../../../stories/VDfM40eXl/README.md) | feat | backlog |
+| [Implement Txtplot Braille Renderer and ASCII Fallback](../../../../stories/VDfM40eXl/README.md) | feat | in-progress |
 | [Add Still Image CLI and Verification Fixtures](../../../../stories/VDfM426Xm/README.md) | feat | backlog |
-| [Define Still Image Frame Model and Decode Path](../../../../stories/VDfM43AVP/README.md) | feat | in-progress |
+| [Define Still Image Frame Model and Decode Path](../../../../stories/VDfM43AVP/README.md) | feat | done |
 <!-- END GENERATED -->

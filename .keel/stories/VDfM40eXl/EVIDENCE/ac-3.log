@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:27:48.050423219-07:00
+mode: manual
+---
+Renderer selection is driven by the shared RenderPlan: tests derive the image plan through plan_render and confirm the still-image renderer follows the planned Braille or Ascii mode without any backend-local terminal probing.

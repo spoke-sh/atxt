@@ -6,6 +6,7 @@
 pub mod frame;
 pub mod media;
 pub mod render;
+pub mod still_image;
 pub mod terminal;
 
 pub use frame::{Rgba8, StillImageDecodeError, VisualFrame, VisualFrameError, decode_still_image};
@@ -14,6 +15,7 @@ pub use media::{
     probe_path,
 };
 pub use render::{OutputKind, PlanningReason, RenderIntent, RenderMode, RenderPlan, plan_render};
+pub use still_image::{StillImageRenderError, render_still_image};
 pub use terminal::{
     ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,
     detect_terminal_profile,

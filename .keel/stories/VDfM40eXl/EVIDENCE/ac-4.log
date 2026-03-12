@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:27:58.558607779-07:00
+mode: manual
+---
+txtplot remains isolated inside the still_image module through a narrow render_still_image adapter; the canonical VisualFrame contract stays in the frame module and the public atxt media model does not expose txtplot types.
