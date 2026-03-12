@@ -17,9 +17,15 @@
 |--------|--------|
 | [Still Image Decode and Txtplot Rendering](epics/VDfKtP4Yp/voyages/VDfLYKNEX/) | done |
 
-### [Timed Visual Sequence Summaries](epics/VDfyDRgBo/) (active)
+### [Timed Visual Sequence Summaries](epics/VDfyDRgBo/) (done)
 
 | Voyage | Status |
 |--------|--------|
-| [Timed Sequence Decode And Contact Sheet Rendering](epics/VDfyDRgBo/voyages/VDfyYRyVs/) | in-progress |
+| [Timed Sequence Decode And Contact Sheet Rendering](epics/VDfyDRgBo/voyages/VDfyYRyVs/) | done |
+
+### [Audio Summary Rendering](epics/VDgyaiPm5/) (active)
+
+| Voyage | Status |
+|--------|--------|
+| [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | planned |
 

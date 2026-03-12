@@ -20,8 +20,8 @@ index: 3
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/1 voyages complete, 2/3 stories done
+**Progress:** 1/1 voyages complete, 3/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Timed Sequence Decode And Contact Sheet Rendering](voyages/VDfyYRyVs/) | in-progress | 2/3 |
+| [Timed Sequence Decode And Contact Sheet Rendering](voyages/VDfyYRyVs/) | done | 3/3 |
 <!-- END GENERATED -->
