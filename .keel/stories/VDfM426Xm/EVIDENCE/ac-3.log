@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:33:43.315500016-07:00
+mode: manual
+---
+cargo test proves the default CLI path works without renderer-specific flags in ordinary and captured sessions by exercising both direct braille output and captured-session ASCII fallback through synthetic terminal environments.

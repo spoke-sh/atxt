@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-12T08:33:33.906435974-07:00
+mode: manual
+---
+Checked in the half-dark still-image fixture plus authored VHS tapes, and captured reviewable direct.txt braille and ascii.txt degraded CLI proof logs. VHS itself is not installed in this environment, so the tape files are present but the proof capture used pseudo-TTY and dumb-terminal command logs instead.

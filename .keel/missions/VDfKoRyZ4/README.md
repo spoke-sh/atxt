@@ -1,10 +1,11 @@
 ---
 id: VDfKoRyZ4
 title: First Static Image Rendering Vertical Slice
-status: active
+status: achieved
 created_at: 2026-03-12T08:03:40
-updated_at: 2026-03-12T08:09:30
+updated_at: 2026-03-12T08:38:28
 activated_at: 2026-03-12T08:09:30
+achieved_at: 2026-03-12T08:38:28
 ---
 
 # First Static Image Rendering Vertical Slice

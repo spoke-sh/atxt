@@ -149,7 +149,7 @@ fn resize_frame(frame: &VisualFrame, width: u32, height: u32) -> RgbaImage {
     if source.width() == width && source.height() == height {
         source
     } else {
-        image::imageops::resize(&source, width, height, FilterType::Triangle)
+        image::imageops::resize(&source, width, height, FilterType::Nearest)
     }
 }
 

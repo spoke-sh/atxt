@@ -430,6 +430,7 @@ dependencies = [
 [[package]]
 name = "txtplot"
 version = "0.1.0"
+source = "git+https://github.com/rupurt/txtplot.git?rev=821ea21777bd1e160d2e9aba7dddbc5b1830b946#821ea21777bd1e160d2e9aba7dddbc5b1830b946"
 dependencies = [
  "colored",
  "crossterm",

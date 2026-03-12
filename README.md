@@ -18,7 +18,7 @@ This repository carries a small set of foundational documents:
 - [CONFIGURATION.md](CONFIGURATION.md) - development environment and configuration surfaces
 - [RELEASE.md](RELEASE.md) - manual release checklist for the bootstrap phase
 
-If you use Nix, `nix develop` provides the Rust toolchain plus `just`, `cargo-nextest`, `cargo-llvm-cov`, `ffmpeg`, `keel`, and `sift`.
+If you use Nix, `nix develop` provides the Rust toolchain plus `just`, `cargo-nextest`, `cargo-llvm-cov`, `ffmpeg`, `vhs`, `keel`, and `sift`.
 
 ## Why This Exists
 
