@@ -1,12 +1,13 @@
 ---
 id: VDfBwYad0
 title: Probe and Capability Foundations
-status: in-progress
+status: done
 epic: VDfBvLf8x
 created_at: 2026-03-12T07:28:26
 index: 1
 updated_at: 2026-03-12T07:31:57
 started_at: 2026-03-12T07:39:59
+completed_at: 2026-03-12T07:48:02
 ---
 
 # Probe and Capability Foundations
@@ -20,15 +21,17 @@ started_at: 2026-03-12T07:39:59
 |----------|-------------|
 | [SRS.md](SRS.md) | Requirements and verification criteria |
 | [SDD.md](SDD.md) | Architecture and implementation details |
+| [VOYAGE_REPORT.md](VOYAGE_REPORT.md) | Narrative summary of implementation and evidence |
+| [COMPLIANCE_REPORT.md](COMPLIANCE_REPORT.md) | Traceability matrix and verification proof |
 <!-- END DOCUMENTS -->
 
 ## Stories
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/2 stories complete
+**Progress:** 2/2 stories complete
 
 | Title | Type | Status |
 |-------|------|--------|
-| [Define Probe and Terminal Capability Models](../../../../stories/VDfBzGchT/README.md) | feat | in-progress |
-| [Implement Input Probing and Terminal Environment Detection](../../../../stories/VDfBzGvhS/README.md) | feat | backlog |
+| [Define Probe and Terminal Capability Models](../../../../stories/VDfBzGchT/README.md) | feat | done |
+| [Implement Input Probing and Terminal Environment Detection](../../../../stories/VDfBzGvhS/README.md) | feat | done |
 <!-- END GENERATED -->

@@ -1,3 +1,5 @@
+use std::path::Path;
+
 /// Coarse media categories used during probing and normalization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum MediaKind {
@@ -98,10 +100,50 @@ impl ProbeResult {
     }
 }
 
+/// Classify a filesystem path into the initial media families used by render planning.
+pub fn probe_path(path: &Path) -> ProbeResult {
+    let extension = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.to_ascii_lowercase());
+
+    let Some(extension) = extension else {
+        return ProbeResult::default();
+    };
+
+    let classification = match extension.as_str() {
+        "png" => Some((MediaKind::Image, "image/png")),
+        "jpg" | "jpeg" => Some((MediaKind::Image, "image/jpeg")),
+        "webp" => Some((MediaKind::Image, "image/webp")),
+        "bmp" => Some((MediaKind::Image, "image/bmp")),
+        "gif" => Some((MediaKind::AnimatedImage, "image/gif")),
+        "mp4" => Some((MediaKind::Video, "video/mp4")),
+        "mov" => Some((MediaKind::Video, "video/quicktime")),
+        "mkv" => Some((MediaKind::Video, "video/x-matroska")),
+        "webm" => Some((MediaKind::Video, "video/webm")),
+        "wav" => Some((MediaKind::Audio, "audio/wav")),
+        "mp3" => Some((MediaKind::Audio, "audio/mpeg")),
+        "flac" => Some((MediaKind::Audio, "audio/flac")),
+        "ogg" => Some((MediaKind::Audio, "audio/ogg")),
+        "pdf" => Some((MediaKind::Document, "application/pdf")),
+        _ => None,
+    };
+
+    match classification {
+        Some((kind, mime)) => ProbeResult::new(kind)
+            .with_mime(mime)
+            .with_completeness(ProbeCompleteness::Partial),
+        None => ProbeResult::default(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::{
         AudioMetadata, MediaKind, MediaTiming, PixelDimensions, ProbeCompleteness, ProbeResult,
+        probe_path,
     };
 
     #[test]
@@ -144,5 +186,22 @@ mod tests {
                 channels: Some(2),
             })
         );
+    }
+
+    #[test]
+    fn probe_path_classifies_initial_media_families() {
+        assert_eq!(probe_path(Path::new("still.png")).kind, MediaKind::Image);
+        assert_eq!(
+            probe_path(Path::new("loop.gif")).kind,
+            MediaKind::AnimatedImage
+        );
+        assert_eq!(probe_path(Path::new("clip.mp4")).kind, MediaKind::Video);
+        assert_eq!(probe_path(Path::new("tone.wav")).kind, MediaKind::Audio);
+        assert_eq!(probe_path(Path::new("spec.pdf")).kind, MediaKind::Document);
+        assert_eq!(probe_path(Path::new("blob.bin")).kind, MediaKind::Unknown);
+
+        let video = probe_path(Path::new("clip.mp4"));
+        assert_eq!(video.completeness, ProbeCompleteness::Partial);
+        assert_eq!(video.mime.as_deref(), Some("video/mp4"));
     }
 }

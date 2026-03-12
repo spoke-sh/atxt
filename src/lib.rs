@@ -9,6 +9,10 @@ pub mod terminal;
 
 pub use media::{
     AudioMetadata, MediaKind, MediaTiming, PixelDimensions, ProbeCompleteness, ProbeResult,
+    probe_path,
 };
-pub use render::{OutputKind, RenderIntent, RenderMode};
-pub use terminal::{ColorSupport, Multiplexer, SessionMode, TerminalProfile, TerminalSize};
+pub use render::{OutputKind, PlanningReason, RenderIntent, RenderMode, RenderPlan, plan_render};
+pub use terminal::{
+    ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,
+    detect_terminal_profile,
+};

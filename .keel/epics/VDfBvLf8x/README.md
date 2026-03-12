@@ -20,8 +20,8 @@ index: 1
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/1 voyages complete, 0/2 stories done
+**Progress:** 1/1 voyages complete, 2/2 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Probe and Capability Foundations](voyages/VDfBwYad0/) | in-progress | 0/2 |
+| [Probe and Capability Foundations](voyages/VDfBwYad0/) | done | 2/2 |
 <!-- END GENERATED -->
