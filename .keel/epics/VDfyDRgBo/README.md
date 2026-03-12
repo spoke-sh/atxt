@@ -23,5 +23,5 @@ index: 3
 **Progress:** 0/1 voyages complete, 0/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Timed Sequence Decode And Contact Sheet Rendering](voyages/VDfyYRyVs/) | planned | 0/3 |
+| [Timed Sequence Decode And Contact Sheet Rendering](voyages/VDfyYRyVs/) | in-progress | 0/3 |
 <!-- END GENERATED -->

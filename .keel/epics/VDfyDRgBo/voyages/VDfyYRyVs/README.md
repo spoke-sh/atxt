@@ -1,11 +1,12 @@
 ---
 id: VDfyYRyVs
 title: Timed Sequence Decode And Contact Sheet Rendering
-status: planned
+status: in-progress
 epic: VDfyDRgBo
 created_at: 2026-03-12T10:41:31
 index: 1
 updated_at: 2026-03-12T10:46:28
+started_at: 2026-03-12T10:53:36
 ---
 
 # Timed Sequence Decode And Contact Sheet Rendering
@@ -30,5 +31,5 @@ updated_at: 2026-03-12T10:46:28
 |-------|------|--------|
 | [Implement Bounded Sequence Decode And Contact Sheet Transform](../../../../stories/VDfybDtAG/README.md) | feat | backlog |
 | [Add Timed Sequence CLI Path And Mission Proofs](../../../../stories/VDfybELAH/README.md) | feat | backlog |
-| [Define Timed Sequence Model And Probe Metadata](../../../../stories/VDfybFOA6/README.md) | feat | backlog |
+| [Define Timed Sequence Model And Probe Metadata](../../../../stories/VDfybFOA6/README.md) | feat | in-progress |
 <!-- END GENERATED -->

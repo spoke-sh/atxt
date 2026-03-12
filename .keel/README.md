@@ -21,5 +21,5 @@
 
 | Voyage | Status |
 |--------|--------|
-| [Timed Sequence Decode And Contact Sheet Rendering](epics/VDfyDRgBo/voyages/VDfyYRyVs/) | planned |
+| [Timed Sequence Decode And Contact Sheet Rendering](epics/VDfyDRgBo/voyages/VDfyYRyVs/) | in-progress |
 

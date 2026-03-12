@@ -1,3 +1,4 @@
+use std::fs::File;
 use std::path::Path;
 
 /// Coarse media categories used during probing and normalization.
@@ -10,6 +11,12 @@ pub enum MediaKind {
     Document,
     #[default]
     Unknown,
+}
+
+impl MediaKind {
+    pub const fn is_timed_visual(self) -> bool {
+        matches!(self, Self::AnimatedImage | Self::Video)
+    }
 }
 
 /// Whether probing produced a complete view of the asset or only partial facts.
@@ -42,6 +49,7 @@ impl PixelDimensions {
 pub struct MediaTiming {
     pub frame_count: Option<u64>,
     pub duration_ms: Option<u64>,
+    pub nominal_frame_rate_milli_fps: Option<u32>,
 }
 
 /// Audio metadata relevant to waveform and spectrogram planning.
@@ -130,6 +138,7 @@ pub fn probe_path(path: &Path) -> ProbeResult {
     };
 
     match classification {
+        Some((MediaKind::AnimatedImage, mime)) => probe_gif_metadata(path, mime),
         Some((kind, mime)) => ProbeResult::new(kind)
             .with_mime(mime)
             .with_completeness(ProbeCompleteness::Partial),
@@ -137,14 +146,129 @@ pub fn probe_path(path: &Path) -> ProbeResult {
     }
 }
 
+fn probe_gif_metadata(path: &Path, mime: &str) -> ProbeResult {
+    let base = ProbeResult::new(MediaKind::AnimatedImage)
+        .with_mime(mime)
+        .with_completeness(ProbeCompleteness::Partial);
+
+    let Ok(file) = File::open(path) else {
+        return base;
+    };
+
+    let decoder = gif::DecodeOptions::new();
+    let Ok(mut reader) = decoder.read_info(file) else {
+        return base;
+    };
+
+    let dimensions = PixelDimensions::new(u32::from(reader.width()), u32::from(reader.height()));
+    let mut frame_count = 0_u64;
+    let mut duration_ms = 0_u64;
+    let mut had_error = false;
+
+    loop {
+        match reader.read_next_frame() {
+            Ok(Some(frame)) => {
+                frame_count = frame_count.saturating_add(1);
+                duration_ms = duration_ms.saturating_add(u64::from(frame.delay) * 10);
+            }
+            Ok(None) => break,
+            Err(_) => {
+                had_error = true;
+                break;
+            }
+        }
+    }
+
+    let nominal_frame_rate_milli_fps = if duration_ms > 0 {
+        frame_count
+            .checked_mul(1_000_000)
+            .and_then(|value| value.checked_div(duration_ms))
+            .and_then(|value| u32::try_from(value).ok())
+    } else {
+        None
+    };
+    let timing = MediaTiming {
+        frame_count: Some(frame_count),
+        duration_ms: if duration_ms > 0 {
+            Some(duration_ms)
+        } else {
+            None
+        },
+        nominal_frame_rate_milli_fps,
+    };
+
+    let completeness = if had_error || frame_count == 0 {
+        ProbeCompleteness::Partial
+    } else {
+        ProbeCompleteness::Complete
+    };
+
+    base.with_completeness(completeness)
+        .with_dimensions(dimensions)
+        .with_timing(timing)
+}
+
 #[cfg(test)]
 mod tests {
+    use std::env;
+    use std::fs::File;
     use std::path::Path;
+    use std::path::PathBuf;
+    use std::process;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::{
         AudioMetadata, MediaKind, MediaTiming, PixelDimensions, ProbeCompleteness, ProbeResult,
         probe_path,
     };
+    use gif::{Encoder, Frame, Repeat};
+
+    static TEMP_FILE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+    struct TempGifPath {
+        path: PathBuf,
+    }
+
+    impl TempGifPath {
+        fn new() -> Self {
+            let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+            let mut path = env::temp_dir();
+            path.push(format!("atext-media-test-{}-{}.gif", process::id(), id));
+            Self { path }
+        }
+
+        fn path(&self) -> &Path {
+            &self.path
+        }
+    }
+
+    impl Drop for TempGifPath {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.path);
+        }
+    }
+
+    fn write_test_gif(path: &Path) {
+        let file = File::create(path).expect("gif fixture should be created");
+        let mut encoder = Encoder::new(file, 2, 1, &[]).expect("gif encoder should open");
+        encoder
+            .set_repeat(Repeat::Infinite)
+            .expect("gif repeat should be set");
+
+        let pixels_a = vec![0, 0, 0, 255, 255, 255];
+        let mut frame_a = Frame::from_rgb_speed(2, 1, &pixels_a, 10);
+        frame_a.delay = 2;
+        encoder
+            .write_frame(&frame_a)
+            .expect("first gif frame should be written");
+
+        let pixels_b = vec![255, 255, 255, 0, 0, 0];
+        let mut frame_b = Frame::from_rgb_speed(2, 1, &pixels_b, 10);
+        frame_b.delay = 3;
+        encoder
+            .write_frame(&frame_b)
+            .expect("second gif frame should be written");
+    }
 
     #[test]
     fn probe_result_defaults_to_unknown() {
@@ -163,6 +287,7 @@ mod tests {
             timing: Some(MediaTiming {
                 frame_count: Some(240),
                 duration_ms: Some(4_000),
+                nominal_frame_rate_milli_fps: Some(60_000),
             }),
             audio: Some(AudioMetadata {
                 sample_rate_hz: Some(48_000),
@@ -177,6 +302,7 @@ mod tests {
             Some(MediaTiming {
                 frame_count: Some(240),
                 duration_ms: Some(4_000),
+                nominal_frame_rate_milli_fps: Some(60_000),
             })
         );
         assert_eq!(
@@ -191,10 +317,9 @@ mod tests {
     #[test]
     fn probe_path_classifies_initial_media_families() {
         assert_eq!(probe_path(Path::new("still.png")).kind, MediaKind::Image);
-        assert_eq!(
-            probe_path(Path::new("loop.gif")).kind,
-            MediaKind::AnimatedImage
-        );
+        let gif = probe_path(Path::new("loop.gif"));
+        assert_eq!(gif.kind, MediaKind::AnimatedImage);
+        assert_eq!(gif.completeness, ProbeCompleteness::Partial);
         assert_eq!(probe_path(Path::new("clip.mp4")).kind, MediaKind::Video);
         assert_eq!(probe_path(Path::new("tone.wav")).kind, MediaKind::Audio);
         assert_eq!(probe_path(Path::new("spec.pdf")).kind, MediaKind::Document);
@@ -203,5 +328,32 @@ mod tests {
         let video = probe_path(Path::new("clip.mp4"));
         assert_eq!(video.completeness, ProbeCompleteness::Partial);
         assert_eq!(video.mime.as_deref(), Some("video/mp4"));
+    }
+
+    #[test]
+    fn media_kind_exposes_timed_visual_classification() {
+        assert!(MediaKind::AnimatedImage.is_timed_visual());
+        assert!(MediaKind::Video.is_timed_visual());
+        assert!(!MediaKind::Image.is_timed_visual());
+    }
+
+    #[test]
+    fn probe_path_collects_gif_timing_when_file_exists() {
+        let gif = TempGifPath::new();
+        write_test_gif(gif.path());
+
+        let result = probe_path(gif.path());
+
+        assert_eq!(result.kind, MediaKind::AnimatedImage);
+        assert_eq!(result.completeness, ProbeCompleteness::Complete);
+        assert_eq!(result.dimensions, Some(PixelDimensions::new(2, 1)));
+        assert_eq!(
+            result.timing,
+            Some(MediaTiming {
+                frame_count: Some(2),
+                duration_ms: Some(50),
+                nominal_frame_rate_milli_fps: Some(40_000),
+            })
+        );
     }
 }
