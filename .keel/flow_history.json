@@ -3,19 +3,19 @@
   "weekly": [
     {
       "week_start": "2026-03-09",
-      "stories_done": 4,
-      "voyages_done": 1,
-      "epics_done": 1,
+      "stories_done": 5,
+      "voyages_done": 2,
+      "epics_done": 2,
       "cycle_min_hours": 0.0375,
-      "cycle_median_hours": 0.059027777777777776,
-      "cycle_max_hours": 0.0913888888888889,
+      "cycle_median_hours": 0.06833333333333333,
+      "cycle_max_hours": 0.13111111111111112,
       "acceptance_wait_median_hours": null,
       "voyage_cycle_min_hours": 0.13416666666666666,
-      "voyage_cycle_median_hours": 0.13416666666666666,
-      "voyage_cycle_max_hours": 0.13416666666666666,
+      "voyage_cycle_median_hours": 0.2425,
+      "voyage_cycle_max_hours": 0.35083333333333333,
       "epic_cycle_min_hours": 0.13416666666666666,
-      "epic_cycle_median_hours": 0.13416666666666666,
-      "epic_cycle_max_hours": 0.13416666666666666
+      "epic_cycle_median_hours": 0.2425,
+      "epic_cycle_max_hours": 0.35083333333333333
     },
     {
       "week_start": "2026-03-02",

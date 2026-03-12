@@ -11,9 +11,15 @@
 |--------|--------|
 | [Probe and Capability Foundations](epics/VDfBvLf8x/voyages/VDfBwYad0/) | done |
 
-### [Static Image Rendering With Txtplot](epics/VDfKtP4Yp/) (active)
+### [Static Image Rendering With Txtplot](epics/VDfKtP4Yp/) (done)
 
 | Voyage | Status |
 |--------|--------|
-| [Still Image Decode and Txtplot Rendering](epics/VDfKtP4Yp/voyages/VDfLYKNEX/) | in-progress |
+| [Still Image Decode and Txtplot Rendering](epics/VDfKtP4Yp/voyages/VDfLYKNEX/) | done |
+
+### [Timed Visual Sequence Summaries](epics/VDfyDRgBo/) (active)
+
+| Voyage | Status |
+|--------|--------|
+| [Timed Sequence Decode And Contact Sheet Rendering](epics/VDfyDRgBo/voyages/VDfyYRyVs/) | planned |
 
