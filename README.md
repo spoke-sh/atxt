@@ -86,7 +86,7 @@ nix develop
 ## Verification Modes
 
 - If you only run one command to validate the current verification surface, run `just mission`.
-- `just mission` builds the repo binary, renders the canonical still-image fixture once through an interactive Braille path and once through a degraded ASCII fallback path, then prints current mission status.
+- `just mission` builds the repo binary, renders the canonical timed GIF fixture once through an interactive contact-sheet Braille path and once through a degraded ASCII fallback path, then prints current mission status.
 - `just signal` prints the product-facing signal only: fixture identity plus the direct and degraded render outputs that a human should inspect.
 - `just mission-status` prints the current or latest Keel mission state so the operator can see whether the current slice is still active, achieved, or ready for human verification.
 

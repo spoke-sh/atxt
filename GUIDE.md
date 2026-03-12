@@ -76,6 +76,7 @@ Prefer adding:
 - fallback-path tests for low-capability terminals
 
 When possible, test the degraded output too. That is part of the product, not an edge case.
+The current canonical operator proof path is the timed GIF summary behind `just mission`.
 
 ## Searching and Planning
 

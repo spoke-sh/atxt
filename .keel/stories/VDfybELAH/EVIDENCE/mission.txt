@@ -1,0 +1,23 @@
+atext signal
+fixture: src/testdata/half-swap.gif
+dimensions: 8x8
+source frames: 2
+direct terminal: interactive tty, truecolor, contact-sheet braille path
+direct render:
+⣿⣿⠀⠀⠀⠀⣿⣿
+⣿⣿⠀⠀⠀⠀⣿⣿
+degraded terminal: captured session, dumb/no-color, ascii fallback
+degraded render:
+@@    @@
+@@    @@
+@@    @@
+@@    @@
+summary: the same timed visual input remains reviewable as one contact-sheet signal across direct and degraded terminal paths
+
+[2moperator guide:[0m README.md (verification modes and current proof path)
+[2mrelease gate:[0m RELEASE.md (manual release checklist)
+atext mission
+id: VDfy5BuD8
+title: Timed Visual Sequence Verification Slice
+status: active
+next: nix develop -c keel mission next VDfy5BuD8

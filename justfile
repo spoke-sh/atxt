@@ -49,13 +49,13 @@ doctest:
 run *args:
   cargo run --quiet --bin atext -- {{args}}
 
-# Print the canonical static-image verification signal.
+# Print the canonical timed-sequence verification signal.
 signal:
   #!/usr/bin/env bash
   set -euo pipefail
 
   repo_root="{{justfile_directory()}}"
-  fixture="$repo_root/src/testdata/half-dark.png"
+  fixture="$repo_root/src/testdata/half-swap.gif"
   target_dir="${CARGO_TARGET_DIR:-$repo_root/target}"
   if [[ "$target_dir" != /* ]]; then
     target_dir="$repo_root/$target_dir"
@@ -71,20 +71,22 @@ signal:
 
   if command -v ffprobe >/dev/null 2>&1; then
     dimensions="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$fixture" | head -n1)"
+    frame_count="$(ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 "$fixture" | head -n1)"
   else
     dimensions="unknown"
+    frame_count="unknown"
   fi
 
   render_direct() {
     local output_file="$1"
     local command_string
-    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=4 LINES=2 %q render %q' "$repo_root" "$atext_bin" "$fixture"
+    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=8 LINES=2 %q render %q' "$repo_root" "$atext_bin" "$fixture"
     script -qec "$command_string" /dev/null | tr -d '\r' >"$output_file"
   }
 
   render_degraded() {
     local output_file="$1"
-    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=4 LINES=4 "$atext_bin" render "$fixture" >"$output_file"
+    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=8 LINES=4 "$atext_bin" render "$fixture" >"$output_file"
   }
 
   direct_output="$(mktemp)"
@@ -94,8 +96,8 @@ signal:
   render_direct "$direct_output"
   render_degraded "$degraded_output"
 
-  direct_expected=$'⣿⣿⠀⠀\n⣿⣿⠀⠀\n'
-  degraded_expected=$'@@  \n@@  \n@@  \n@@  \n'
+  direct_expected=$'⣿⣿⠀⠀⠀⠀⣿⣿\n⣿⣿⠀⠀⠀⠀⣿⣿\n'
+  degraded_expected=$'@@    @@\n@@    @@\n@@    @@\n@@    @@\n'
 
   if [[ "$(cat "$direct_output")"$'\n' != "$direct_expected" ]]; then
     printf 'error: direct mission render did not produce braille signal\n' >&2
@@ -112,13 +114,14 @@ signal:
   printf 'atext signal\n'
   printf 'fixture: %s\n' "${fixture#$repo_root/}"
   printf 'dimensions: %s\n' "$dimensions"
-  printf 'direct terminal: interactive tty, truecolor, braille path\n'
+  printf 'source frames: %s\n' "$frame_count"
+  printf 'direct terminal: interactive tty, truecolor, contact-sheet braille path\n'
   printf 'direct render:\n'
   cat "$direct_output"
   printf 'degraded terminal: captured session, dumb/no-color, ascii fallback\n'
   printf 'degraded render:\n'
   cat "$degraded_output"
-  printf 'summary: the same still image remains reviewable across direct and degraded terminal paths\n'
+  printf 'summary: the same timed visual input remains reviewable as one contact-sheet signal across direct and degraded terminal paths\n'
 
 # Print the current or latest mission completion summary.
 mission-status:

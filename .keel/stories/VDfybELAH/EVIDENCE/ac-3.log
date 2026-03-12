@@ -1,0 +1,28 @@
+---
+recorded_at: 2026-03-12T11:12:00-07:00
+command: just mission
+source_capture: /home/alex/workspace/spoke-sh/atext/.keel/stories/VDfybELAH/EVIDENCE/mission.txt
+---
+atext signal
+fixture: src/testdata/half-swap.gif
+dimensions: 8x8
+source frames: 2
+direct terminal: interactive tty, truecolor, contact-sheet braille path
+direct render:
+⣿⣿⠀⠀⠀⠀⣿⣿
+⣿⣿⠀⠀⠀⠀⣿⣿
+degraded terminal: captured session, dumb/no-color, ascii fallback
+degraded render:
+@@    @@
+@@    @@
+@@    @@
+@@    @@
+summary: the same timed visual input remains reviewable as one contact-sheet signal across direct and degraded terminal paths
+
+operator guide: README.md (verification modes and current proof path)
+release gate: RELEASE.md (manual release checklist)
+atext mission
+id: VDfy5BuD8
+title: Timed Visual Sequence Verification Slice
+status: active
+next: nix develop -c keel mission next VDfy5BuD8
