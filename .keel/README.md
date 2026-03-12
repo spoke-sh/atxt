@@ -9,5 +9,5 @@
 
 | Voyage | Status |
 |--------|--------|
-| [Probe and Capability Foundations](epics/VDfBvLf8x/voyages/VDfBwYad0/) | planned |
+| [Probe and Capability Foundations](epics/VDfBvLf8x/voyages/VDfBwYad0/) | in-progress |
 

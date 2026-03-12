@@ -2,12 +2,14 @@
 id: VDfBzGchT
 title: Define Probe and Terminal Capability Models
 type: feat
-status: backlog
+status: done
 created_at: 2026-03-12T07:28:36
-updated_at: 2026-03-12T07:31:57
+updated_at: 2026-03-12T07:42:14
 operator-signal: 
 scope: VDfBvLf8x/VDfBwYad0
 index: 1
+started_at: 2026-03-12T07:39:59
+completed_at: 2026-03-12T07:42:14
 ---
 
 # Define Probe and Terminal Capability Models
@@ -18,6 +20,6 @@ Define the shared `ProbeResult` and `TerminalProfile` surfaces so later probing,
 
 ## Acceptance Criteria
 
-- [ ] [SRS-01/AC-01] `ProbeResult` captures the media family, geometry, timing, audio metadata, and explicit unknown-partial states needed for renderer planning <!-- verify: cargo test, SRS-01:start:end -->
-- [ ] [SRS-02/AC-02] `TerminalProfile` captures color, Unicode, animation, multiplexer, remote, and size signals required for planning decisions <!-- verify: cargo test, SRS-02:start:end -->
-- [ ] [SRS-NFR-02/AC-03] The model surfaces are documented or tested in a way that does not require a live interactive terminal session to validate them <!-- verify: cargo test, SRS-NFR-02:start:end -->
+- [x] [SRS-01/AC-01] `ProbeResult` captures the media family, geometry, timing, audio metadata, and explicit unknown-partial states needed for renderer planning <!-- verify: cargo test, SRS-01:start:end, proof: ac-1.log-->
+- [x] [SRS-02/AC-02] `TerminalProfile` captures color, Unicode, animation, multiplexer, remote, and size signals required for planning decisions <!-- verify: cargo test, SRS-02:start:end, proof: ac-2.log-->
+- [x] [SRS-NFR-02/AC-03] The model surfaces are documented or tested in a way that does not require a live interactive terminal session to validate them <!-- verify: cargo test, SRS-NFR-02:start:end, proof: ac-3.log-->

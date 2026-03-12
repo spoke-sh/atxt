@@ -7,6 +7,8 @@ pub mod media;
 pub mod render;
 pub mod terminal;
 
-pub use media::{MediaKind, ProbeResult};
+pub use media::{
+    AudioMetadata, MediaKind, MediaTiming, PixelDimensions, ProbeCompleteness, ProbeResult,
+};
 pub use render::{OutputKind, RenderIntent, RenderMode};
-pub use terminal::{ColorSupport, Multiplexer, TerminalProfile};
+pub use terminal::{ColorSupport, Multiplexer, SessionMode, TerminalProfile, TerminalSize};

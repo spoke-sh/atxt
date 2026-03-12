@@ -1,11 +1,12 @@
 ---
 id: VDfBwYad0
 title: Probe and Capability Foundations
-status: planned
+status: in-progress
 epic: VDfBvLf8x
 created_at: 2026-03-12T07:28:26
 index: 1
 updated_at: 2026-03-12T07:31:57
+started_at: 2026-03-12T07:39:59
 ---
 
 # Probe and Capability Foundations
@@ -28,6 +29,6 @@ updated_at: 2026-03-12T07:31:57
 
 | Title | Type | Status |
 |-------|------|--------|
-| [Define Probe and Terminal Capability Models](../../../../stories/VDfBzGchT/README.md) | feat | backlog |
+| [Define Probe and Terminal Capability Models](../../../../stories/VDfBzGchT/README.md) | feat | in-progress |
 | [Implement Input Probing and Terminal Environment Detection](../../../../stories/VDfBzGvhS/README.md) | feat | backlog |
 <!-- END GENERATED -->
