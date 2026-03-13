@@ -8,7 +8,7 @@
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
     keel = {
-      url = "github:spoke-sh/keel";
+      url = "git+ssh://git@github.com/spoke-sh/keel.git?ref=main&rev=91a2bb745112da11412b508d52abd1a8d312a754";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
       inputs.rust-overlay.follows = "rust-overlay";
@@ -52,7 +52,34 @@
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
         src = craneLib.cleanCargoSource ./.;
-        keelPkg = keel.packages.${system}.keel;
+        keelSrc = keel.outPath;
+        keelCargoToml = pkgs.lib.importTOML "${keelSrc}/Cargo.toml";
+        keelRustPlatform = pkgs.makeRustPlatform {
+          cargo = rustToolchain;
+          rustc = rustToolchain;
+        };
+        keelPkg = keelRustPlatform.buildRustPackage {
+          pname = "keel";
+          version = keelCargoToml.package.version;
+          src = keelSrc;
+          cargoLock = {
+            lockFile = "${keelSrc}/Cargo.lock";
+            outputHashes = {
+              "txtplot-0.1.0" = "sha256-PXj4ntPJ1UXda++7gcE+yk2cCLy/CFBMBGxgfBGSH5c=";
+            };
+          };
+          nativeBuildInputs = [
+            pkgs.pkg-config
+          ];
+          nativeCheckInputs = [
+            pkgs.git
+          ];
+          buildInputs = [
+            pkgs.zstd
+          ];
+          # Mirror dojo: keep the CLI available even while upstream doctests are failing.
+          doCheck = false;
+        };
         siftPkg = sift.packages.${system}.sift;
         commonArgs = {
           inherit src;
