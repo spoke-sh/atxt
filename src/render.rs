@@ -1,6 +1,9 @@
 use crate::media::{MediaKind, ProbeResult};
 use crate::terminal::{ColorSupport, SessionMode, TerminalProfile};
 
+const AUDIO_SPECTROGRAM_MIN_COLUMNS: u16 = 48;
+const AUDIO_SPECTROGRAM_MIN_ROWS: u16 = 12;
+
 /// Output shape produced by the selected renderer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OutputKind {
@@ -49,6 +52,7 @@ impl Default for RenderIntent {
 pub enum PlanningReason {
     Direct,
     CapturedSequenceFallback,
+    DensityFallback,
     UnicodeFallback,
     UnknownMediaFallback,
     DocumentFallback,
@@ -101,13 +105,21 @@ pub fn plan_render(probe: &ProbeResult, terminal: &TerminalProfile) -> RenderPla
                     degraded: true,
                     reason: PlanningReason::UnicodeFallback,
                 }
-            } else {
-                intent.mode = RenderMode::Waveform;
+            } else if audio_supports_spectrogram(terminal) {
+                intent.mode = RenderMode::Spectrogram;
                 RenderPlan {
                     intent,
                     output: OutputKind::AudioVisualization,
                     degraded: false,
                     reason: PlanningReason::Direct,
+                }
+            } else {
+                intent.mode = RenderMode::Waveform;
+                RenderPlan {
+                    intent,
+                    output: OutputKind::AudioVisualization,
+                    degraded: true,
+                    reason: PlanningReason::DensityFallback,
                 }
             }
         }
@@ -160,6 +172,15 @@ pub fn plan_render(probe: &ProbeResult, terminal: &TerminalProfile) -> RenderPla
             }
         }
     }
+}
+
+fn audio_supports_spectrogram(terminal: &TerminalProfile) -> bool {
+    terminal
+        .size
+        .map(|size| {
+            size.columns >= AUDIO_SPECTROGRAM_MIN_COLUMNS && size.rows >= AUDIO_SPECTROGRAM_MIN_ROWS
+        })
+        .unwrap_or(false)
 }
 
 #[cfg(test)]
@@ -243,5 +264,51 @@ mod tests {
         assert_eq!(plan.output, OutputKind::SingleFrame);
         assert!(!plan.degraded);
         assert_eq!(plan.reason, PlanningReason::Direct);
+    }
+
+    #[test]
+    fn render_planning_prefers_spectrogram_for_dense_audio_terminals() {
+        let probe =
+            ProbeResult::new(MediaKind::Audio).with_completeness(ProbeCompleteness::Partial);
+        let terminal = TerminalProfile {
+            color_support: ColorSupport::Truecolor,
+            unicode_reliable: true,
+            animation_allowed: true,
+            inline_images_supported: false,
+            multiplexer: Multiplexer::None,
+            is_remote: false,
+            session_mode: SessionMode::Interactive,
+            size: Some(TerminalSize::new(120, 40)),
+        };
+
+        let plan = plan_render(&probe, &terminal);
+
+        assert_eq!(plan.intent.mode, RenderMode::Spectrogram);
+        assert_eq!(plan.output, OutputKind::AudioVisualization);
+        assert!(!plan.degraded);
+        assert_eq!(plan.reason, PlanningReason::Direct);
+    }
+
+    #[test]
+    fn render_planning_falls_back_to_waveform_for_low_density_audio_terminals() {
+        let probe =
+            ProbeResult::new(MediaKind::Audio).with_completeness(ProbeCompleteness::Partial);
+        let terminal = TerminalProfile {
+            color_support: ColorSupport::Ansi256,
+            unicode_reliable: true,
+            animation_allowed: true,
+            inline_images_supported: false,
+            multiplexer: Multiplexer::None,
+            is_remote: false,
+            session_mode: SessionMode::Interactive,
+            size: Some(TerminalSize::new(24, 8)),
+        };
+
+        let plan = plan_render(&probe, &terminal);
+
+        assert_eq!(plan.intent.mode, RenderMode::Waveform);
+        assert_eq!(plan.output, OutputKind::AudioVisualization);
+        assert!(plan.degraded);
+        assert_eq!(plan.reason, PlanningReason::DensityFallback);
     }
 }

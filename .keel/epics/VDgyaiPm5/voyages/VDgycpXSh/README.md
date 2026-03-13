@@ -25,11 +25,11 @@ started_at: 2026-03-12T18:14:43
 ## Stories
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/3 stories complete
+**Progress:** 1/3 stories complete
 
 | Title | Type | Status |
 |-------|------|--------|
 | [Add Audio CLI Path And Mission Proofs](../../../../stories/VDgyfgTXQ/README.md) | feat | backlog |
-| [Implement Wav Decode And Waveform Spectrogram Transforms](../../../../stories/VDgyfgpXK/README.md) | feat | backlog |
-| [Define Audio Summary Model And Probe Metadata](../../../../stories/VDgyfh1XJ/README.md) | feat | in-progress |
+| [Implement Wav Decode And Waveform Spectrogram Transforms](../../../../stories/VDgyfgpXK/README.md) | feat | in-progress |
+| [Define Audio Summary Model And Probe Metadata](../../../../stories/VDgyfh1XJ/README.md) | feat | done |
 <!-- END GENERATED -->

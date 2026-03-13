@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-13T09:21:25.291207133-07:00
+mode: manual
+---
+cargo test covers the first-slice audio budget by rejecting WAV inputs beyond MAX_DECODE_SAMPLES and keeping fixed waveform, time-slice, and band budgets without playback.

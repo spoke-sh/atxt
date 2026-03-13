@@ -24,10 +24,10 @@ Implement the first still-image renderers by adapting the shared frame model int
 - [x] [SRS-NFR-03/AC-04] txtplot integration stays behind a narrow adapter boundary instead of redefining the still-image media contract <!-- verify: cargo test, SRS-NFR-03:start:end, proof: ac-4.log-->
 
 #### Verified Evidence
-- [ac-4.log](../../../../stories/VDfM40eXl/EVIDENCE/ac-4.log)
 - [ac-1.log](../../../../stories/VDfM40eXl/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfM40eXl/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfM40eXl/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfM40eXl/EVIDENCE/ac-3.log)
+- [ac-4.log](../../../../stories/VDfM40eXl/EVIDENCE/ac-4.log)
 
 ### Add Still Image CLI and Verification Fixtures
 - **ID:** VDfM426Xm
@@ -43,10 +43,10 @@ Add the first user-facing still-image render command and the fixture-backed proo
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfM426Xm/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfM426Xm/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfM426Xm/EVIDENCE/ac-2.log)
-- [direct.txt](../../../../stories/VDfM426Xm/EVIDENCE/direct.txt)
+- [ac-3.log](../../../../stories/VDfM426Xm/EVIDENCE/ac-3.log)
 - [ascii.txt](../../../../stories/VDfM426Xm/EVIDENCE/ascii.txt)
+- [direct.txt](../../../../stories/VDfM426Xm/EVIDENCE/direct.txt)
 
 ### Define Still Image Frame Model and Decode Path
 - **ID:** VDfM43AVP
@@ -62,7 +62,7 @@ Define the canonical still-image frame surface and implement the first path-base
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfM43AVP/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfM43AVP/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfM43AVP/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfM43AVP/EVIDENCE/ac-3.log)
 
 

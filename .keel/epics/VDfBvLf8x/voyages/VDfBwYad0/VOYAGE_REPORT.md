@@ -24,8 +24,8 @@ Define the shared `ProbeResult` and `TerminalProfile` surfaces so later probing,
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfBzGchT/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfBzGchT/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfBzGchT/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfBzGchT/EVIDENCE/ac-3.log)
 
 ### Implement Input Probing and Terminal Environment Detection
 - **ID:** VDfBzGvhS
@@ -41,7 +41,7 @@ Implement the first probing and capability detection entry points so atext can c
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfBzGvhS/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfBzGvhS/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfBzGvhS/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfBzGvhS/EVIDENCE/ac-3.log)
 
 

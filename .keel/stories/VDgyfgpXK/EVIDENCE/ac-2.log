@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-13T09:21:25.143374937-07:00
+mode: manual
+---
+cargo test covers shared audio planning selecting Spectrogram on dense terminals and degraded Waveform fallback on lower-density terminals through plan_render.

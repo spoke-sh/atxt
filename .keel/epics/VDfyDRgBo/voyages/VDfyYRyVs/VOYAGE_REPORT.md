@@ -24,8 +24,8 @@ Implement the first bounded timed-sequence decode adapter and summary transform 
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfybDtAG/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfybDtAG/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfybDtAG/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfybDtAG/EVIDENCE/ac-3.log)
 
 ### Add Timed Sequence CLI Path And Mission Proofs
 - **ID:** VDfybELAH
@@ -41,11 +41,11 @@ Expose the timed summary pipeline through the CLI and publish the canonical miss
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfybELAH/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfybELAH/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfybELAH/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfybELAH/EVIDENCE/ac-3.log)
+- [ascii.txt](../../../../stories/VDfybELAH/EVIDENCE/ascii.txt)
 - [direct.txt](../../../../stories/VDfybELAH/EVIDENCE/direct.txt)
 - [mission.txt](../../../../stories/VDfybELAH/EVIDENCE/mission.txt)
-- [ascii.txt](../../../../stories/VDfybELAH/EVIDENCE/ascii.txt)
 
 ### Define Timed Sequence Model And Probe Metadata
 - **ID:** VDfybFOA6
@@ -61,7 +61,7 @@ Define the shared timed-sequence model for representative sampled frames and ext
 
 #### Verified Evidence
 - [ac-1.log](../../../../stories/VDfybFOA6/EVIDENCE/ac-1.log)
-- [ac-3.log](../../../../stories/VDfybFOA6/EVIDENCE/ac-3.log)
 - [ac-2.log](../../../../stories/VDfybFOA6/EVIDENCE/ac-2.log)
+- [ac-3.log](../../../../stories/VDfybFOA6/EVIDENCE/ac-3.log)
 
 

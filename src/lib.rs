@@ -13,7 +13,8 @@ pub mod still_image;
 pub mod terminal;
 
 pub use audio::{
-    AudioSummary, AudioSummaryError, SpectrogramSummary, WaveformBin, WaveformSummary,
+    AudioDecodeError, AudioSummary, AudioSummaryError, SpectrogramSummary, WaveformBin,
+    WaveformSummary, decode_audio_summary,
 };
 pub use cli::{CliError, run_cli};
 pub use frame::{Rgba8, StillImageDecodeError, VisualFrame, VisualFrameError, decode_still_image};

@@ -1,0 +1,5 @@
+---
+recorded_at: 2026-03-13T09:21:25.079924637-07:00
+mode: manual
+---
+cargo test covers bounded WAV decode, deterministic mono mixdown, waveform summary construction, and spectrogram summary construction via decode_audio_summary.
