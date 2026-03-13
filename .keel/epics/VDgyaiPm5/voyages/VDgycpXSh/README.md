@@ -1,11 +1,12 @@
 ---
 id: VDgycpXSh
 title: Audio Decode And Summary Rendering
-status: planned
+status: in-progress
 epic: VDgyaiPm5
 created_at: 2026-03-12T14:48:04
 index: 1
 updated_at: 2026-03-12T14:52:14
+started_at: 2026-03-12T18:14:43
 ---
 
 # Audio Decode And Summary Rendering
@@ -30,5 +31,5 @@ updated_at: 2026-03-12T14:52:14
 |-------|------|--------|
 | [Add Audio CLI Path And Mission Proofs](../../../../stories/VDgyfgTXQ/README.md) | feat | backlog |
 | [Implement Wav Decode And Waveform Spectrogram Transforms](../../../../stories/VDgyfgpXK/README.md) | feat | backlog |
-| [Define Audio Summary Model And Probe Metadata](../../../../stories/VDgyfh1XJ/README.md) | feat | backlog |
+| [Define Audio Summary Model And Probe Metadata](../../../../stories/VDgyfh1XJ/README.md) | feat | in-progress |
 <!-- END GENERATED -->

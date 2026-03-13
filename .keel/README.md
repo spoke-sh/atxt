@@ -27,5 +27,5 @@
 
 | Voyage | Status |
 |--------|--------|
-| [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | planned |
+| [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | in-progress |
 

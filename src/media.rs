@@ -57,6 +57,8 @@ pub struct MediaTiming {
 pub struct AudioMetadata {
     pub sample_rate_hz: Option<u32>,
     pub channels: Option<u16>,
+    pub sample_count: Option<u64>,
+    pub bits_per_sample: Option<u16>,
 }
 
 /// Probe-level metadata collected before full decoding.
@@ -139,6 +141,7 @@ pub fn probe_path(path: &Path) -> ProbeResult {
 
     match classification {
         Some((MediaKind::AnimatedImage, mime)) => probe_gif_metadata(path, mime),
+        Some((MediaKind::Audio, "audio/wav")) => probe_wav_metadata(path, "audio/wav"),
         Some((kind, mime)) => ProbeResult::new(kind)
             .with_mime(mime)
             .with_completeness(ProbeCompleteness::Partial),
@@ -208,6 +211,39 @@ fn probe_gif_metadata(path: &Path, mime: &str) -> ProbeResult {
         .with_timing(timing)
 }
 
+fn probe_wav_metadata(path: &Path, mime: &str) -> ProbeResult {
+    let base = ProbeResult::new(MediaKind::Audio)
+        .with_mime(mime)
+        .with_completeness(ProbeCompleteness::Partial);
+
+    let Ok(reader) = hound::WavReader::open(path) else {
+        return base;
+    };
+
+    let spec = reader.spec();
+    let sample_count = u64::from(reader.duration());
+    let duration_ms = if spec.sample_rate > 0 {
+        sample_count
+            .checked_mul(1_000)
+            .and_then(|value| value.checked_div(u64::from(spec.sample_rate)))
+    } else {
+        None
+    };
+
+    base.with_completeness(ProbeCompleteness::Complete)
+        .with_timing(MediaTiming {
+            frame_count: None,
+            duration_ms,
+            nominal_frame_rate_milli_fps: None,
+        })
+        .with_audio(AudioMetadata {
+            sample_rate_hz: Some(spec.sample_rate),
+            channels: Some(spec.channels),
+            sample_count: Some(sample_count),
+            bits_per_sample: Some(spec.bits_per_sample),
+        })
+}
+
 #[cfg(test)]
 mod tests {
     use std::env;
@@ -222,6 +258,7 @@ mod tests {
         probe_path,
     };
     use gif::{Encoder, Frame, Repeat};
+    use hound::{SampleFormat, WavSpec, WavWriter};
 
     static TEMP_FILE_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -243,6 +280,29 @@ mod tests {
     }
 
     impl Drop for TempGifPath {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.path);
+        }
+    }
+
+    struct TempWavPath {
+        path: PathBuf,
+    }
+
+    impl TempWavPath {
+        fn new() -> Self {
+            let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+            let mut path = env::temp_dir();
+            path.push(format!("atext-media-test-{}-{}.wav", process::id(), id));
+            Self { path }
+        }
+
+        fn path(&self) -> &Path {
+            &self.path
+        }
+    }
+
+    impl Drop for TempWavPath {
         fn drop(&mut self) {
             let _ = std::fs::remove_file(&self.path);
         }
@@ -270,6 +330,27 @@ mod tests {
             .expect("second gif frame should be written");
     }
 
+    fn write_test_wav(path: &Path) {
+        let spec = WavSpec {
+            channels: 2,
+            sample_rate: 8_000,
+            bits_per_sample: 16,
+            sample_format: SampleFormat::Int,
+        };
+        let mut writer = WavWriter::create(path, spec).expect("wav fixture should be created");
+
+        for sample in 0_i16..2_000_i16 {
+            writer
+                .write_sample(sample)
+                .expect("left channel sample should write");
+            writer
+                .write_sample(-sample)
+                .expect("right channel sample should write");
+        }
+
+        writer.finalize().expect("wav fixture should finalize");
+    }
+
     #[test]
     fn probe_result_defaults_to_unknown() {
         let result = ProbeResult::default();
@@ -292,6 +373,8 @@ mod tests {
             audio: Some(AudioMetadata {
                 sample_rate_hz: Some(48_000),
                 channels: Some(2),
+                sample_count: Some(192_000),
+                bits_per_sample: Some(16),
             }),
         };
 
@@ -310,6 +393,8 @@ mod tests {
             Some(AudioMetadata {
                 sample_rate_hz: Some(48_000),
                 channels: Some(2),
+                sample_count: Some(192_000),
+                bits_per_sample: Some(16),
             })
         );
     }
@@ -353,6 +438,34 @@ mod tests {
                 frame_count: Some(2),
                 duration_ms: Some(50),
                 nominal_frame_rate_milli_fps: Some(40_000),
+            })
+        );
+    }
+
+    #[test]
+    fn probe_path_collects_wav_audio_metadata_when_file_exists() {
+        let wav = TempWavPath::new();
+        write_test_wav(wav.path());
+
+        let result = probe_path(wav.path());
+
+        assert_eq!(result.kind, MediaKind::Audio);
+        assert_eq!(result.completeness, ProbeCompleteness::Complete);
+        assert_eq!(
+            result.audio,
+            Some(AudioMetadata {
+                sample_rate_hz: Some(8_000),
+                channels: Some(2),
+                sample_count: Some(2_000),
+                bits_per_sample: Some(16),
+            })
+        );
+        assert_eq!(
+            result.timing,
+            Some(MediaTiming {
+                frame_count: None,
+                duration_ms: Some(250),
+                nominal_frame_rate_milli_fps: None,
             })
         );
     }

@@ -10,5 +10,6 @@ path = "src/lib.rs"
 
 [dependencies]
 gif = "0.13.3"
+hound = "3.5.1"
 image = { version = "0.25.6", default-features = false, features = ["bmp", "gif", "jpeg", "png", "webp"] }
 txtplot = { git = "https://github.com/rupurt/txtplot.git", rev = "821ea21777bd1e160d2e9aba7dddbc5b1830b946" }

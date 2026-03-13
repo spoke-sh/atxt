@@ -3,6 +3,7 @@
 //! The initial crate surface is intentionally small. It defines the
 //! project's core concepts before format decoders and renderers land.
 
+pub mod audio;
 pub mod cli;
 pub mod frame;
 pub mod media;
@@ -11,6 +12,9 @@ pub mod sequence;
 pub mod still_image;
 pub mod terminal;
 
+pub use audio::{
+    AudioSummary, AudioSummaryError, SpectrogramSummary, WaveformBin, WaveformSummary,
+};
 pub use cli::{CliError, run_cli};
 pub use frame::{Rgba8, StillImageDecodeError, VisualFrame, VisualFrameError, decode_still_image};
 pub use media::{
