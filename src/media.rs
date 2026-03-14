@@ -141,7 +141,7 @@ pub fn probe_path(path: &Path) -> ProbeResult {
 
     match classification {
         Some((MediaKind::AnimatedImage, mime)) => probe_gif_metadata(path, mime),
-        Some((MediaKind::Audio, "audio/wav")) => probe_wav_metadata(path, "audio/wav"),
+        Some((MediaKind::Audio, mime)) => probe_audio_metadata(path, mime),
         Some((kind, mime)) => ProbeResult::new(kind)
             .with_mime(mime)
             .with_completeness(ProbeCompleteness::Partial),
@@ -211,21 +211,50 @@ fn probe_gif_metadata(path: &Path, mime: &str) -> ProbeResult {
         .with_timing(timing)
 }
 
-fn probe_wav_metadata(path: &Path, mime: &str) -> ProbeResult {
+fn probe_audio_metadata(path: &Path, mime: &str) -> ProbeResult {
+    use symphonia::core::formats::FormatOptions;
+    use symphonia::core::io::MediaSourceStream;
+    use symphonia::core::meta::MetadataOptions;
+    use symphonia::core::probe::Hint;
+
     let base = ProbeResult::new(MediaKind::Audio)
         .with_mime(mime)
         .with_completeness(ProbeCompleteness::Partial);
 
-    let Ok(reader) = hound::WavReader::open(path) else {
+    let Ok(file) = File::open(path) else {
         return base;
     };
 
-    let spec = reader.spec();
-    let sample_count = u64::from(reader.duration());
-    let duration_ms = if spec.sample_rate > 0 {
-        sample_count
+    let mss = MediaSourceStream::new(Box::new(file), Default::default());
+    let mut hint = Hint::new();
+    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+        hint.with_extension(ext);
+    }
+
+    let probed = symphonia::default::get_probe().format(
+        &hint,
+        mss,
+        &FormatOptions::default(),
+        &MetadataOptions::default(),
+    );
+
+    let Ok(probed) = probed else {
+        return base;
+    };
+
+    let format = probed.format;
+    let track = format.default_track();
+    let codec_params = track.map(|t| &t.codec_params);
+
+    let sample_rate = codec_params.and_then(|p| p.sample_rate);
+    let channels = codec_params.and_then(|p| p.channels).map(|c| c.count() as u16);
+    let sample_count = codec_params.and_then(|p| p.n_frames);
+    let bits_per_sample = codec_params.and_then(|p| p.bits_per_sample).map(|b| b as u16);
+
+    let duration_ms = if let (Some(n_frames), Some(sample_rate)) = (sample_count, sample_rate) {
+        n_frames
             .checked_mul(1_000)
-            .and_then(|value| value.checked_div(u64::from(spec.sample_rate)))
+            .and_then(|v| v.checked_div(u64::from(sample_rate)))
     } else {
         None
     };
@@ -237,10 +266,10 @@ fn probe_wav_metadata(path: &Path, mime: &str) -> ProbeResult {
             nominal_frame_rate_milli_fps: None,
         })
         .with_audio(AudioMetadata {
-            sample_rate_hz: Some(spec.sample_rate),
-            channels: Some(spec.channels),
-            sample_count: Some(sample_count),
-            bits_per_sample: Some(spec.bits_per_sample),
+            sample_rate_hz: sample_rate,
+            channels,
+            sample_count,
+            bits_per_sample,
         })
 }
 
