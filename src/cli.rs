@@ -9,7 +9,7 @@ use crate::{
     plan_render, probe_path, render_audio_summary, render_still_image, summarize_timed_sequence,
 };
 
-const USAGE: &str = "usage: atext render <path> | atext screen | atext stats";
+const USAGE: &str = "usage: atext render <path> | atext screen | atext stats | atext globe";
 
 /// User-facing CLI failures for the current renderable verification slices.
 #[derive(Debug)]
@@ -23,6 +23,7 @@ pub enum CliError {
     AudioRender(AudioRenderError),
     Stats(Box<dyn Error>),
     Screen(Box<dyn Error>),
+    Globe(Box<dyn Error>),
 }
 
 impl fmt::Display for CliError {
@@ -37,6 +38,7 @@ impl fmt::Display for CliError {
             Self::AudioRender(source) => write!(f, "{source}"),
             Self::Stats(source) => write!(f, "stats failure: {source}"),
             Self::Screen(source) => write!(f, "screen failure: {source}"),
+            Self::Globe(source) => write!(f, "globe failure: {source}"),
         }
     }
 }
@@ -52,6 +54,7 @@ impl Error for CliError {
             Self::AudioRender(source) => Some(source),
             Self::Stats(source) => Some(source.as_ref()),
             Self::Screen(source) => Some(source.as_ref()),
+            Self::Globe(source) => Some(source.as_ref()),
             Self::Usage(_) => None,
         }
     }
@@ -63,6 +66,7 @@ pub fn run_cli(args: &[String], env: &TerminalEnvironment) -> Result<String, Cli
         [command, path] if command == "render" => render_command(Path::new(path), env),
         [command] if command == "stats" => crate::render_stats().map_err(CliError::Stats),
         [command] if command == "screen" => screen_command(env),
+        [command] if command == "globe" => crate::render_drift_globe(0.5, 0.5).map_err(CliError::Globe),
         _ => Err(CliError::Usage(USAGE)),
     }
 }
@@ -309,7 +313,7 @@ mod tests {
 
         match error {
             CliError::Usage(message) => {
-                assert_eq!(message, "usage: atext render <path> | atext screen | atext stats")
+                assert_eq!(message, "usage: atext render <path> | atext screen | atext stats | atext globe")
             }
             other => panic!("expected usage error, got {other:?}"),
         }
