@@ -10,6 +10,7 @@ path = "src/lib.rs"
 
 [dependencies]
 colored = "2"
+crossterm = "0.29.0"
 gif = "0.13.3"
 hound = "3.5.1"
 image = { version = "0.25.6", default-features = false, features = ["bmp", "gif", "jpeg", "png", "webp"] }
