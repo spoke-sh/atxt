@@ -10,8 +10,36 @@ screen:
   just mission-status
   printf '\n'
   cargo run --quiet --bin atext -- screen
+  printf '\n'
+  just video-signal
+  printf '\n'
   printf '\033[2moperator guide:\033[0m README.md (verification modes and current proof path)\n'
   printf '\033[2mrelease gate:\033[0m RELEASE.md (manual release checklist)\n'
+
+# Print the canonical video verification signal.
+video-signal:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  repo_root="{{justfile_directory()}}"
+  fixture="$repo_root/src/testdata/multimodal_test.mp4"
+  target_dir="${CARGO_TARGET_DIR:-$repo_root/target}"
+  if [[ "$target_dir" != /* ]]; then
+    target_dir="$repo_root/$target_dir"
+  fi
+  atext_bin="$target_dir/debug/atext"
+
+  if [[ ! -f "$fixture" ]]; then
+    printf 'error: video mission fixture not found: %s\n' "$fixture" >&2
+    exit 1
+  fi
+
+  cargo build --bin atext >/dev/null
+
+  printf 'atext video signal\n'
+  printf 'fixture: %s\n' "${fixture#$repo_root/}"
+  printf 'rendering multimodal summary...\n'
+  TERM=xterm-256color COLORTERM=truecolor COLUMNS=80 LINES=24 "$atext_bin" render "$fixture"
 
 # Build the workspace binary.
 build:

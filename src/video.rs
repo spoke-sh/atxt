@@ -29,10 +29,79 @@ impl fmt::Display for VideoDecodeError {
 
 impl Error for VideoDecodeError {}
 
+use crate::audio_render::render_audio_summary;
+use crate::render::{RenderPlan, RenderMode, OutputKind};
+use crate::sequence::summarize_timed_sequence;
+use crate::still_image::render_still_image;
+
 /// Unified multimodal video summary.
 pub struct VideoSummary {
     pub frames: Vec<VisualFrame>,
     pub audio: AudioSummary,
+}
+
+/// Render failures for video output.
+#[derive(Debug)]
+pub enum VideoRenderError {
+    Visual(crate::still_image::StillImageRenderError),
+    Audio(crate::audio_render::AudioRenderError),
+    Summary(crate::sequence::TimedSequenceSummaryError),
+}
+
+impl fmt::Display for VideoRenderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Visual(e) => write!(f, "visual render error: {e}"),
+            Self::Audio(e) => write!(f, "audio render error: {e}"),
+            Self::Summary(e) => write!(f, "summary error: {e}"),
+        }
+    }
+}
+
+impl Error for VideoRenderError {}
+
+/// Render a multimodal video summary into terminal-safe text.
+pub fn render_video_summary(
+    summary: &VideoSummary,
+    plan: &RenderPlan,
+) -> Result<String, VideoRenderError> {
+    let mut output = String::new();
+
+    // 1. Render Visual Contact Sheet
+    let samples: Vec<crate::sequence::TimedFrameSample> = summary.frames.iter().map(|f| {
+        crate::sequence::TimedFrameSample {
+            timestamp_ms: 0, // Placeholder
+            frame: f.clone(),
+        }
+    }).collect();
+
+    let sequence = crate::sequence::TimedVisualSequence::new(
+        crate::media::MediaKind::Video,
+        crate::media::MediaTiming::default(),
+        samples,
+    ).map_err(|_| VideoRenderError::Summary(crate::sequence::TimedSequenceSummaryError::LayoutOverflow))?;
+    
+    let contact_sheet = summarize_timed_sequence(&sequence).map_err(VideoRenderError::Summary)?;
+    let visual_text = render_still_image(&contact_sheet, plan).map_err(VideoRenderError::Visual)?;
+    
+    output.push_str("\x1b[1mVisual Summary (Contact Sheet)\x1b[0m\n");
+    output.push_str(&visual_text);
+    output.push('\n');
+
+    // 2. Render Audio Waveform
+    let mut audio_plan = plan.clone();
+    audio_plan.output = crate::render::OutputKind::AudioVisualization;
+    // Ensure we have a valid audio mode if the plan was visual-oriented
+    if audio_plan.intent.mode != RenderMode::Waveform && audio_plan.intent.mode != RenderMode::Spectrogram {
+         audio_plan.intent.mode = RenderMode::Waveform;
+    }
+
+    let audio_text = render_audio_summary(&summary.audio, &audio_plan).map_err(VideoRenderError::Audio)?;
+    
+    output.push_str("\x1b[1mAudio Summary (Waveform)\x1b[0m\n");
+    output.push_str(&audio_text);
+
+    Ok(output)
 }
 
 /// Decode a synchronized multimodal summary from a video file.

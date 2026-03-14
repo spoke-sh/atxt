@@ -5,6 +5,7 @@ use std::path::Path;
 use crate::{
     AudioDecodeError, AudioRenderError, StillImageDecodeError, StillImageRenderError,
     TerminalEnvironment, TimedSequenceDecodeError, TimedSequenceSummaryError,
+    VideoDecodeError, VideoRenderError,
     decode_audio_summary, decode_still_image, decode_timed_sequence, detect_terminal_profile,
     plan_render, probe_path, render_audio_summary, render_still_image, summarize_timed_sequence,
 };
@@ -19,8 +20,10 @@ pub enum CliError {
     TimedDecode(TimedSequenceDecodeError),
     TimedSummary(TimedSequenceSummaryError),
     AudioDecode(AudioDecodeError),
+    VideoDecode(VideoDecodeError),
     Render(StillImageRenderError),
     AudioRender(AudioRenderError),
+    VideoRender(VideoRenderError),
     Stats(Box<dyn Error>),
     Screen(Box<dyn Error>),
     Globe(Box<dyn Error>),
@@ -34,8 +37,10 @@ impl fmt::Display for CliError {
             Self::TimedDecode(source) => write!(f, "{source}"),
             Self::TimedSummary(source) => write!(f, "{source}"),
             Self::AudioDecode(source) => write!(f, "{source}"),
+            Self::VideoDecode(source) => write!(f, "{source}"),
             Self::Render(source) => write!(f, "{source}"),
             Self::AudioRender(source) => write!(f, "{source}"),
+            Self::VideoRender(source) => write!(f, "{source}"),
             Self::Stats(source) => write!(f, "stats failure: {source}"),
             Self::Screen(source) => write!(f, "screen failure: {source}"),
             Self::Globe(source) => write!(f, "globe failure: {source}"),
@@ -50,8 +55,10 @@ impl Error for CliError {
             Self::TimedDecode(source) => Some(source),
             Self::TimedSummary(source) => Some(source),
             Self::AudioDecode(source) => Some(source),
+            Self::VideoDecode(source) => Some(source),
             Self::Render(source) => Some(source),
             Self::AudioRender(source) => Some(source),
+            Self::VideoRender(source) => Some(source),
             Self::Stats(source) => Some(source.as_ref()),
             Self::Screen(source) => Some(source.as_ref()),
             Self::Globe(source) => Some(source.as_ref()),
@@ -92,6 +99,7 @@ fn screen_command(env: &TerminalEnvironment) -> Result<String, CliError> {
         ("Audio Waveform Proof (pulse.mp3)", "src/testdata/pulse.mp3"),
         ("Audio Waveform Proof (pulse.ogg)", "src/testdata/pulse.ogg"),
         ("Audio Waveform Proof (pulse.flac)", "src/testdata/pulse.flac"),
+        ("Multimodal Video Proof (multimodal_test.mp4)", "src/testdata/multimodal_test.mp4"),
     ];
 
     for (label, path_str) in fixtures {
@@ -113,7 +121,10 @@ fn render_command(path: &Path, env: &TerminalEnvironment) -> Result<String, CliE
     let terminal = detect_terminal_profile(env);
     let plan = plan_render(&probe, &terminal);
 
-    if probe.kind.is_timed_visual() {
+    if probe.kind == crate::media::MediaKind::Video {
+        let summary = crate::video::decode_video_summary(path, &probe).map_err(CliError::VideoDecode)?;
+        crate::video::render_video_summary(&summary, &plan).map_err(CliError::VideoRender)
+    } else if probe.kind.is_timed_visual() {
         let sequence = decode_timed_sequence(path, &probe).map_err(CliError::TimedDecode)?;
         let frame = summarize_timed_sequence(&sequence).map_err(CliError::TimedSummary)?;
         render_still_image(&frame, &plan).map_err(CliError::Render)
