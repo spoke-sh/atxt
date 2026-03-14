@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::f32::consts::TAU;
 use std::fmt;
+use std::fs;
 use std::path::Path;
 
 use crate::media::{MediaKind, ProbeResult};
@@ -232,20 +233,10 @@ pub enum AudioDecodeError {
         sample_count: u64,
         max_sample_count: u64,
     },
-    UnsupportedWavEncoding {
-        sample_format: hound::SampleFormat,
-        bits_per_sample: u16,
-    },
-    TruncatedSamples {
-        frame_index: usize,
-        channel_index: usize,
-    },
-    NonFiniteFloatSample {
-        frame_index: usize,
-        channel_index: usize,
-    },
+    NoDefaultTrack,
+    UnsupportedCodec(u64),
     EmptyAudio,
-    Wav(hound::Error),
+    Symphonia(symphonia::core::errors::Error),
     Summary(AudioSummaryError),
 }
 
@@ -270,32 +261,10 @@ impl fmt::Display for AudioDecodeError {
                 "audio sample budget exceeded: {} samples exceeds first-slice budget {}",
                 sample_count, max_sample_count
             ),
-            Self::UnsupportedWavEncoding {
-                sample_format,
-                bits_per_sample,
-            } => write!(
-                f,
-                "unsupported wav encoding {:?} with {} bits per sample",
-                sample_format, bits_per_sample
-            ),
-            Self::TruncatedSamples {
-                frame_index,
-                channel_index,
-            } => write!(
-                f,
-                "wav sample data ended early at frame {} channel {}",
-                frame_index, channel_index
-            ),
-            Self::NonFiniteFloatSample {
-                frame_index,
-                channel_index,
-            } => write!(
-                f,
-                "wav float sample was non-finite at frame {} channel {}",
-                frame_index, channel_index
-            ),
+            Self::NoDefaultTrack => write!(f, "audio file has no default track"),
+            Self::UnsupportedCodec(id) => write!(f, "unsupported audio codec ID: {id}"),
             Self::EmptyAudio => write!(f, "audio summary decode requires at least one sample"),
-            Self::Wav(source) => write!(f, "{source}"),
+            Self::Symphonia(source) => write!(f, "{source}"),
             Self::Summary(source) => write!(f, "{source}"),
         }
     }
@@ -304,22 +273,16 @@ impl fmt::Display for AudioDecodeError {
 impl Error for AudioDecodeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::Wav(source) => Some(source),
+            Self::Symphonia(source) => Some(source),
             Self::Summary(source) => Some(source),
-            Self::UnsupportedMediaKind { .. }
-            | Self::UnsupportedAudioFormat { .. }
-            | Self::SampleBudgetExceeded { .. }
-            | Self::UnsupportedWavEncoding { .. }
-            | Self::TruncatedSamples { .. }
-            | Self::NonFiniteFloatSample { .. }
-            | Self::EmptyAudio => None,
+            _ => None,
         }
     }
 }
 
-impl From<hound::Error> for AudioDecodeError {
-    fn from(source: hound::Error) -> Self {
-        Self::Wav(source)
+impl From<symphonia::core::errors::Error> for AudioDecodeError {
+    fn from(source: symphonia::core::errors::Error) -> Self {
+        Self::Symphonia(source)
     }
 }
 
@@ -387,26 +350,51 @@ impl AudioSummary {
     }
 }
 
-/// Decode a bounded WAV input and transform it into the shared audio-summary surface.
+/// Decode a bounded audio input and transform it into the shared audio-summary surface.
 pub fn decode_audio_summary(
     path: &Path,
     probe: &ProbeResult,
 ) -> Result<AudioSummary, AudioDecodeError> {
+    use symphonia::core::audio::{AudioBuffer, Signal};
+    use symphonia::core::codecs::DecoderOptions;
+    use symphonia::core::formats::FormatOptions;
+    use symphonia::core::io::MediaSourceStream;
+    use symphonia::core::meta::MetadataOptions;
+    use symphonia::core::probe::Hint;
+
     if probe.kind != MediaKind::Audio {
         return Err(AudioDecodeError::UnsupportedMediaKind { kind: probe.kind });
     }
-    if probe.mime.as_deref() != Some("audio/wav") {
-        return Err(AudioDecodeError::UnsupportedAudioFormat {
-            mime: probe.mime.clone(),
-        });
+
+    let file = fs::File::open(path).map_err(|e| symphonia::core::errors::Error::IoError(e))?;
+    let mss = MediaSourceStream::new(Box::new(file), Default::default());
+    let mut hint = Hint::new();
+    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+        hint.with_extension(ext);
     }
 
-    let mut reader = hound::WavReader::open(path)?;
-    let spec = reader.spec();
-    let sample_count = u64::from(reader.duration());
-    if sample_count == 0 {
-        return Err(AudioDecodeError::EmptyAudio);
-    }
+    let probed = symphonia::default::get_probe().format(
+        &hint,
+        mss,
+        &FormatOptions::default(),
+        &MetadataOptions::default(),
+    )?;
+
+    let mut format = probed.format;
+    let track = format
+        .tracks()
+        .iter()
+        .find(|t| t.codec_params.codec != symphonia::core::codecs::CODEC_TYPE_NULL)
+        .ok_or(AudioDecodeError::NoDefaultTrack)?;
+
+    let mut decoder =
+        symphonia::default::get_codecs().make(&track.codec_params, &DecoderOptions::default())?;
+
+    let track_id = track.id;
+    let sample_rate = track.codec_params.sample_rate.unwrap_or(0);
+    let channels = track.codec_params.channels.map(|c| c.count()).unwrap_or(0);
+    let sample_count = track.codec_params.n_frames.unwrap_or(0);
+
     if sample_count > MAX_DECODE_SAMPLES as u64 {
         return Err(AudioDecodeError::SampleBudgetExceeded {
             sample_count,
@@ -414,100 +402,73 @@ pub fn decode_audio_summary(
         });
     }
 
-    let mono_samples = decode_mono_samples(&mut reader, spec)?;
-    let duration_ms = sample_count
+    let mut mono_samples = Vec::new();
+    let mut float_buf: Option<AudioBuffer<f32>> = None;
+
+    loop {
+        let packet = match format.next_packet() {
+            Ok(packet) => packet,
+            Err(symphonia::core::errors::Error::IoError(ref e))
+                if e.kind() == std::io::ErrorKind::UnexpectedEof =>
+            {
+                break;
+            }
+            Err(e) => return Err(AudioDecodeError::from(e)),
+        };
+
+        if packet.track_id() != track_id {
+            continue;
+        }
+
+        let decoded = decoder.decode(&packet)?;
+
+        if float_buf.as_ref().map_or(true, |b| b.spec() != decoded.spec()) {
+            float_buf = Some(AudioBuffer::<f32>::new(decoded.capacity() as u64, *decoded.spec()));
+        }
+
+        if let Some(ref mut buf) = float_buf {
+            decoded.convert(buf);
+
+            let num_channels = buf.spec().channels.count();
+            let num_frames = buf.frames();
+
+            for i in 0..num_frames {
+                let mut sum = 0.0_f32;
+                for c in 0..num_channels {
+                    sum += buf.chan(c)[i];
+                }
+                mono_samples.push(normalized_level_to_milli(sum / num_channels as f32));
+
+                if mono_samples.len() >= MAX_DECODE_SAMPLES {
+                    break;
+                }
+            }
+        }
+
+        if mono_samples.len() >= MAX_DECODE_SAMPLES {
+            break;
+        }
+    }
+
+    if mono_samples.is_empty() {
+        return Err(AudioDecodeError::EmptyAudio);
+    }
+
+    let duration_ms = (mono_samples.len() as u64)
         .checked_mul(1_000)
-        .map(|value| value.div_ceil(u64::from(spec.sample_rate.max(1))))
+        .map(|value| value.div_ceil(u64::from(sample_rate.max(1))))
         .unwrap_or(0);
     let waveform = summarize_waveform(&mono_samples)?;
     let spectrogram = summarize_spectrogram(&mono_samples)?;
 
     AudioSummary::new(
-        spec.sample_rate,
-        spec.channels,
+        sample_rate,
+        channels as u16,
         duration_ms,
         waveform,
         spectrogram,
     )
     .map_err(AudioDecodeError::from)
-}
-
-fn decode_mono_samples<R: std::io::Read>(
-    reader: &mut hound::WavReader<R>,
-    spec: hound::WavSpec,
-) -> Result<Vec<i16>, AudioDecodeError> {
-    match spec.sample_format {
-        hound::SampleFormat::Int => decode_int_mono_samples(reader, spec),
-        hound::SampleFormat::Float if spec.bits_per_sample == 32 => {
-            decode_float_mono_samples(reader, spec)
-        }
-        sample_format => Err(AudioDecodeError::UnsupportedWavEncoding {
-            sample_format,
-            bits_per_sample: spec.bits_per_sample,
-        }),
-    }
-}
-
-fn decode_int_mono_samples<R: std::io::Read>(
-    reader: &mut hound::WavReader<R>,
-    spec: hound::WavSpec,
-) -> Result<Vec<i16>, AudioDecodeError> {
-    if !(1..=32).contains(&spec.bits_per_sample) {
-        return Err(AudioDecodeError::UnsupportedWavEncoding {
-            sample_format: spec.sample_format,
-            bits_per_sample: spec.bits_per_sample,
-        });
-    }
-
-    let channels = usize::from(spec.channels);
-    let sample_count = reader.duration() as usize;
-    let max_level = ((1_i64 << (spec.bits_per_sample - 1)) - 1).max(1) as f32;
-    let mut samples = reader.samples::<i32>();
-    let mut mono = Vec::with_capacity(sample_count);
-
-    for frame_index in 0..sample_count {
-        let mut sum = 0.0_f32;
-        for channel_index in 0..channels {
-            let sample = samples.next().ok_or(AudioDecodeError::TruncatedSamples {
-                frame_index,
-                channel_index,
-            })??;
-            sum += (sample as f32 / max_level).clamp(-1.0, 1.0);
-        }
-        mono.push(normalized_level_to_milli(sum / channels as f32));
-    }
-
-    Ok(mono)
-}
-
-fn decode_float_mono_samples<R: std::io::Read>(
-    reader: &mut hound::WavReader<R>,
-    spec: hound::WavSpec,
-) -> Result<Vec<i16>, AudioDecodeError> {
-    let channels = usize::from(spec.channels);
-    let sample_count = reader.duration() as usize;
-    let mut samples = reader.samples::<f32>();
-    let mut mono = Vec::with_capacity(sample_count);
-
-    for frame_index in 0..sample_count {
-        let mut sum = 0.0_f32;
-        for channel_index in 0..channels {
-            let sample = samples.next().ok_or(AudioDecodeError::TruncatedSamples {
-                frame_index,
-                channel_index,
-            })??;
-            if !sample.is_finite() {
-                return Err(AudioDecodeError::NonFiniteFloatSample {
-                    frame_index,
-                    channel_index,
-                });
-            }
-            sum += sample.clamp(-1.0, 1.0);
-        }
-        mono.push(normalized_level_to_milli(sum / channels as f32));
-    }
-
-    Ok(mono)
 }
 
 fn summarize_waveform(samples_milli: &[i16]) -> Result<WaveformSummary, AudioDecodeError> {
