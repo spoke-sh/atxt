@@ -3,12 +3,13 @@ use std::fmt;
 use std::path::Path;
 
 use crate::{
-    StillImageDecodeError, StillImageRenderError, TerminalEnvironment, TimedSequenceDecodeError,
-    TimedSequenceSummaryError, decode_still_image, decode_timed_sequence, detect_terminal_profile,
-    plan_render, probe_path, render_still_image, summarize_timed_sequence,
+    AudioDecodeError, AudioRenderError, StillImageDecodeError, StillImageRenderError,
+    TerminalEnvironment, TimedSequenceDecodeError, TimedSequenceSummaryError,
+    decode_audio_summary, decode_still_image, decode_timed_sequence, detect_terminal_profile,
+    plan_render, probe_path, render_audio_summary, render_still_image, summarize_timed_sequence,
 };
 
-const USAGE: &str = "usage: atext render <path>";
+const USAGE: &str = "usage: atext render <path> | atext screen | atext stats";
 
 /// User-facing CLI failures for the current renderable verification slices.
 #[derive(Debug)]
@@ -17,7 +18,11 @@ pub enum CliError {
     StillDecode(StillImageDecodeError),
     TimedDecode(TimedSequenceDecodeError),
     TimedSummary(TimedSequenceSummaryError),
+    AudioDecode(AudioDecodeError),
     Render(StillImageRenderError),
+    AudioRender(AudioRenderError),
+    Stats(Box<dyn Error>),
+    Screen(Box<dyn Error>),
 }
 
 impl fmt::Display for CliError {
@@ -27,7 +32,11 @@ impl fmt::Display for CliError {
             Self::StillDecode(source) => write!(f, "{source}"),
             Self::TimedDecode(source) => write!(f, "{source}"),
             Self::TimedSummary(source) => write!(f, "{source}"),
+            Self::AudioDecode(source) => write!(f, "{source}"),
             Self::Render(source) => write!(f, "{source}"),
+            Self::AudioRender(source) => write!(f, "{source}"),
+            Self::Stats(source) => write!(f, "stats failure: {source}"),
+            Self::Screen(source) => write!(f, "screen failure: {source}"),
         }
     }
 }
@@ -38,7 +47,11 @@ impl Error for CliError {
             Self::StillDecode(source) => Some(source),
             Self::TimedDecode(source) => Some(source),
             Self::TimedSummary(source) => Some(source),
+            Self::AudioDecode(source) => Some(source),
             Self::Render(source) => Some(source),
+            Self::AudioRender(source) => Some(source),
+            Self::Stats(source) => Some(source.as_ref()),
+            Self::Screen(source) => Some(source.as_ref()),
             Self::Usage(_) => None,
         }
     }
@@ -48,22 +61,59 @@ impl Error for CliError {
 pub fn run_cli(args: &[String], env: &TerminalEnvironment) -> Result<String, CliError> {
     match args {
         [command, path] if command == "render" => render_command(Path::new(path), env),
+        [command] if command == "stats" => crate::render_stats().map_err(CliError::Stats),
+        [command] if command == "screen" => screen_command(env),
         _ => Err(CliError::Usage(USAGE)),
     }
+}
+
+fn screen_command(env: &TerminalEnvironment) -> Result<String, CliError> {
+    let mut output = String::new();
+
+    // 1. Project Progress
+    output.push_str(&crate::render_stats().map_err(CliError::Screen)?);
+    output.push_str("\n---\n\n");
+
+    // 2. Canonical Media Proofs
+    let fixtures = [
+        ("Static Image Proof (half-dark.png)", "src/testdata/half-dark.png"),
+        (
+            "Timed Sequence Proof (half-swap.gif)",
+            "src/testdata/half-swap.gif",
+        ),
+        ("Audio Waveform Proof (pulse.wav)", "src/testdata/pulse.wav"),
+    ];
+
+    for (label, path_str) in fixtures {
+        output.push_str(&format!("\x1b[1m{}\x1b[0m\n", label));
+        let path = Path::new(path_str);
+        if path.exists() {
+            output.push_str(&render_command(path, env)?);
+        } else {
+            output.push_str(&format!("error: fixture not found at {}\n", path_str));
+        }
+        output.push_str("\n");
+    }
+
+    Ok(output)
 }
 
 fn render_command(path: &Path, env: &TerminalEnvironment) -> Result<String, CliError> {
     let probe = probe_path(path);
     let terminal = detect_terminal_profile(env);
     let plan = plan_render(&probe, &terminal);
-    let frame = if probe.kind.is_timed_visual() {
-        let sequence = decode_timed_sequence(path, &probe).map_err(CliError::TimedDecode)?;
-        summarize_timed_sequence(&sequence).map_err(CliError::TimedSummary)?
-    } else {
-        decode_still_image(path).map_err(CliError::StillDecode)?
-    };
 
-    render_still_image(&frame, &plan).map_err(CliError::Render)
+    if probe.kind.is_timed_visual() {
+        let sequence = decode_timed_sequence(path, &probe).map_err(CliError::TimedDecode)?;
+        let frame = summarize_timed_sequence(&sequence).map_err(CliError::TimedSummary)?;
+        render_still_image(&frame, &plan).map_err(CliError::Render)
+    } else if probe.kind == crate::media::MediaKind::Audio {
+        let summary = decode_audio_summary(path, &probe).map_err(CliError::AudioDecode)?;
+        render_audio_summary(&summary, &plan).map_err(CliError::AudioRender)
+    } else {
+        let frame = decode_still_image(path).map_err(CliError::StillDecode)?;
+        render_still_image(&frame, &plan).map_err(CliError::Render)
+    }
 }
 
 #[cfg(test)]
@@ -255,7 +305,9 @@ mod tests {
         let error = run_cli(&["render".to_string()], &TerminalEnvironment::default()).unwrap_err();
 
         match error {
-            CliError::Usage(message) => assert_eq!(message, "usage: atext render <path>"),
+            CliError::Usage(message) => {
+                assert_eq!(message, "usage: atext render <path> | atext stats")
+            }
             other => panic!("expected usage error, got {other:?}"),
         }
     }

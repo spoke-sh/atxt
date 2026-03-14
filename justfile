@@ -4,21 +4,14 @@ set positional-arguments
 default:
   @just --list
 
-# Run the current mission proof path and print operator-visible render signals.
-mission *args:
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  for arg in "$@"; do
-    printf 'error: unsupported mission option: %s\n' "$arg" >&2
-    exit 1
-  done
-
-  just signal
+# Show the current project progress and canonical verification proofs.
+screen:
+  cargo build --bin atext >/dev/null
+  just mission-status
   printf '\n'
+  cargo run --quiet --bin atext -- screen
   printf '\033[2moperator guide:\033[0m README.md (verification modes and current proof path)\n'
   printf '\033[2mrelease gate:\033[0m RELEASE.md (manual release checklist)\n'
-  just mission-status
 
 # Build the workspace binary.
 build:
@@ -123,6 +116,70 @@ signal:
   cat "$degraded_output"
   printf 'summary: the same timed visual input remains reviewable as one contact-sheet signal across direct and degraded terminal paths\n'
 
+# Print the canonical audio verification signal.
+audio-signal:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  repo_root="{{justfile_directory()}}"
+  fixture="$repo_root/src/testdata/pulse.wav"
+  target_dir="${CARGO_TARGET_DIR:-$repo_root/target}"
+  if [[ "$target_dir" != /* ]]; then
+    target_dir="$repo_root/$target_dir"
+  fi
+  atext_bin="$target_dir/debug/atext"
+
+  if [[ ! -f "$fixture" ]]; then
+    printf 'error: mission fixture not found: %s\n' "$fixture" >&2
+    exit 1
+  fi
+
+  cargo build --bin atext >/dev/null
+
+  render_direct() {
+    local output_file="$1"
+    local command_string
+    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=16 LINES=4 %q render %q' "$repo_root" "$atext_bin" "$fixture"
+    script -qec "$command_string" /dev/null | tr -d '\r' >"$output_file"
+  }
+
+  render_degraded() {
+    local output_file="$1"
+    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=16 LINES=4 "$atext_bin" render "$fixture" >"$output_file"
+  }
+
+  direct_output="$(mktemp)"
+  degraded_output="$(mktemp)"
+  trap 'rm -f "$direct_output" "$degraded_output"' EXIT
+
+  render_direct "$direct_output"
+  render_degraded "$degraded_output"
+
+  direct_expected=$'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠉⠉⠉⠉⠀⠀⠀⠀⠉⠉⠉⠉⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠉⠉⠉⠉⠀⠀⠀⠀⠉⠉⠉⠉\n'
+  degraded_expected=$'                \n########        \n                \n        ########\n'
+
+  if [[ "$(cat "$direct_output")"$'\n' != "$direct_expected" ]]; then
+    printf 'error: direct audio mission render did not produce braille signal\n' >&2
+    cat "$direct_output" >&2
+    exit 1
+  fi
+
+  if [[ "$(cat "$degraded_output")"$'\n' != "$degraded_expected" ]]; then
+    printf 'error: degraded audio mission render did not produce the expected ascii fallback signal\n' >&2
+    cat "$degraded_output" >&2
+    exit 1
+  fi
+
+  printf 'atext audio signal\n'
+  printf 'fixture: %s\n' "${fixture#$repo_root/}"
+  printf 'direct terminal: interactive tty, truecolor, waveform braille path\n'
+  printf 'direct render:\n'
+  cat "$direct_output"
+  printf 'degraded terminal: captured session, dumb/no-color, ascii fallback\n'
+  printf 'degraded render:\n'
+  cat "$degraded_output"
+  printf 'summary: the same audio input remains reviewable as one waveform signal across direct and degraded terminal paths\n'
+
 # Print the current or latest mission completion summary.
 mission-status:
   #!/usr/bin/env bash
@@ -193,6 +250,7 @@ mission-status:
       ;;
   esac
 
+# Print project progress visualizations.
 quality: fmt-check cargo-check clippy
 
 keel *args:

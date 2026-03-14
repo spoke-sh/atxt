@@ -4,11 +4,13 @@
 //! project's core concepts before format decoders and renderers land.
 
 pub mod audio;
+pub mod audio_render;
 pub mod cli;
 pub mod frame;
 pub mod media;
 pub mod render;
 pub mod sequence;
+pub mod stats;
 pub mod still_image;
 pub mod terminal;
 
@@ -16,6 +18,7 @@ pub use audio::{
     AudioDecodeError, AudioSummary, AudioSummaryError, SpectrogramSummary, WaveformBin,
     WaveformSummary, decode_audio_summary,
 };
+pub use audio_render::{AudioRenderError, render_audio_summary};
 pub use cli::{CliError, run_cli};
 pub use frame::{Rgba8, StillImageDecodeError, VisualFrame, VisualFrameError, decode_still_image};
 pub use media::{
@@ -27,6 +30,7 @@ pub use sequence::{
     TimedFrameSample, TimedSequenceDecodeError, TimedSequenceSummaryError, TimedVisualSequence,
     TimedVisualSequenceError, decode_timed_sequence, summarize_timed_sequence,
 };
+pub use stats::render_stats;
 pub use still_image::{StillImageRenderError, render_still_image};
 pub use terminal::{
     ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,
