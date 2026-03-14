@@ -8,6 +8,7 @@ updated_at: 2026-03-14T14:08:24
 operator-signal:
 scope: VDsSA7qTy/VDsSGo91D
 index: 3
+started_at: 2026-03-14T14:05:00
 completed_at: 2026-03-14T14:08:24
 ---
 

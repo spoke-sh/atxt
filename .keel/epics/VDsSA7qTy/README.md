@@ -20,8 +20,8 @@ index: 6
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/1 voyages complete, 3/3 stories done
+**Progress:** 1/1 voyages complete, 3/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Video Probing and Combined Summary Rendering](voyages/VDsSGo91D/) | in-progress | 3/3 |
+| [Video Probing and Combined Summary Rendering](voyages/VDsSGo91D/) | done | 3/3 |
 <!-- END GENERATED -->

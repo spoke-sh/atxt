@@ -1,12 +1,13 @@
 ---
 id: VDsSGo91D
 title: Video Probing and Combined Summary Rendering
-status: in-progress
+status: done
 epic: VDsSA7qTy
 created_at: 2026-03-14T13:54:49
 index: 1
-updated_at: 2026-03-14T13:57:54
+updated_at: 2026-03-14T14:25:00
 started_at: 2026-03-14T13:58:25
+completed_at: 2026-03-14T14:25:00
 ---
 
 # Video Probing and Combined Summary Rendering
@@ -20,6 +21,8 @@ started_at: 2026-03-14T13:58:25
 |----------|-------------|
 | [SRS.md](SRS.md) | Requirements and verification criteria |
 | [SDD.md](SDD.md) | Architecture and implementation details |
+| [VOYAGE_REPORT.md](VOYAGE_REPORT.md) | Narrative summary of implementation and evidence |
+| [COMPLIANCE_REPORT.md](COMPLIANCE_REPORT.md) | Traceability matrix and verification proof |
 <!-- END DOCUMENTS -->
 
 ## Stories

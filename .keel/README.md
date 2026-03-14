@@ -31,9 +31,9 @@
 
 ### [Project Operations](epics/VDoL6zQQe/) (draft)
 
-### [Multimodal Video Verification](epics/VDsSA7qTy/) (active)
+### [Multimodal Video Verification](epics/VDsSA7qTy/) (done)
 
 | Voyage | Status |
 |--------|--------|
-| [Video Probing and Combined Summary Rendering](epics/VDsSA7qTy/voyages/VDsSGo91D/) | in-progress |
+| [Video Probing and Combined Summary Rendering](epics/VDsSA7qTy/voyages/VDsSGo91D/) | done |
 
