@@ -142,6 +142,7 @@ pub fn probe_path(path: &Path) -> ProbeResult {
     match classification {
         Some((MediaKind::AnimatedImage, mime)) => probe_gif_metadata(path, mime),
         Some((MediaKind::Audio, mime)) => probe_audio_metadata(path, mime),
+        Some((MediaKind::Video, mime)) => probe_video_metadata(path, mime),
         Some((kind, mime)) => ProbeResult::new(kind)
             .with_mime(mime)
             .with_completeness(ProbeCompleteness::Partial),
@@ -211,6 +212,70 @@ fn probe_gif_metadata(path: &Path, mime: &str) -> ProbeResult {
         .with_timing(timing)
 }
 
+fn probe_video_metadata(path: &Path, mime: &str) -> ProbeResult {
+    use std::process::Command;
+    use serde_json::Value;
+
+    let base = ProbeResult::new(MediaKind::Video)
+        .with_mime(mime)
+        .with_completeness(ProbeCompleteness::Partial);
+
+    let mut result = base;
+    let path_str = path.to_str().unwrap_or_default();
+
+    let output = Command::new("ffprobe")
+        .args([
+            "-v", "error",
+            "-show_streams",
+            "-of", "json",
+            path_str,
+        ])
+        .output();
+
+    if let Ok(output) = output {
+        if output.status.success() {
+            if let Ok(json) = serde_json::from_slice::<Value>(&output.stdout) {
+                result.completeness = ProbeCompleteness::Complete;
+                if let Some(streams) = json.get("streams").and_then(|s| s.as_array()) {
+                    for stream in streams {
+                        match stream.get("codec_type").and_then(|t| t.as_str()) {
+                            Some("video") => {
+                                let w = stream.get("width").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                                let h = stream.get("height").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                                if w > 0 && h > 0 {
+                                    result = result.with_dimensions(PixelDimensions::new(w, h));
+                                }
+                                let n_frames = stream.get("nb_frames").and_then(|v| v.as_str()).and_then(|s| s.parse().ok());
+                                let dur_secs = stream.get("duration").and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok());
+                                let duration_ms = dur_secs.map(|d| (d * 1000.0) as u64);
+                                
+                                result = result.with_timing(MediaTiming {
+                                    frame_count: n_frames,
+                                    duration_ms,
+                                    nominal_frame_rate_milli_fps: None,
+                                });
+                            }
+                            Some("audio") => {
+                                let channels = stream.get("channels").and_then(|v| v.as_u64()).map(|v| v as u16);
+                                let sample_rate = stream.get("sample_rate").and_then(|v| v.as_str()).and_then(|s| s.parse().ok());
+                                result = result.with_audio(AudioMetadata {
+                                    sample_rate_hz: sample_rate,
+                                    channels,
+                                    sample_count: None,
+                                    bits_per_sample: None,
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    result
+}
+
 fn probe_audio_metadata(path: &Path, mime: &str) -> ProbeResult {
     use symphonia::core::formats::FormatOptions;
     use symphonia::core::io::MediaSourceStream;
@@ -243,7 +308,10 @@ fn probe_audio_metadata(path: &Path, mime: &str) -> ProbeResult {
     };
 
     let format = probed.format;
-    let track = format.default_track();
+    let track = format
+        .tracks()
+        .iter()
+        .find(|t| t.codec_params.sample_rate.is_some());
     let codec_params = track.map(|t| &t.codec_params);
 
     let sample_rate = codec_params.and_then(|p| p.sample_rate);
@@ -497,5 +565,28 @@ mod tests {
                 nominal_frame_rate_milli_fps: None,
             })
         );
+    }
+
+    #[test]
+    fn probe_path_collects_multimodal_metadata_for_video() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut path = root.to_path_buf();
+        path.push("src/testdata/multimodal_test.mp4");
+
+        if !path.exists() {
+            return; // Skip if not generated (e.g. in environments without ffmpeg during test)
+        }
+
+        let result = probe_path(&path);
+
+        assert_eq!(result.kind, MediaKind::Video);
+        // Symphonia might not report exact frames for all MP4s depending on indexing,
+        // but it should at least see the dimensions and audio.
+        assert!(result.dimensions.is_some());
+        assert!(result.audio.is_some());
+        
+        let audio = result.audio.unwrap();
+        assert_eq!(audio.sample_rate_hz, Some(44100));
+        assert_eq!(audio.channels, Some(1));
     }
 }
