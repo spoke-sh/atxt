@@ -2,6 +2,10 @@
 
 Repository-local instructions for agents working in `atext`.
 
+## Path Mapping
+
+- When the user refers to a project using the `~[project]` syntax (e.g., `~keel`), it refers to the sibling directory `../[project]` relative to the current workspace root.
+
 ## Base Guidance
 
 - Follow the shared Keel operating model in [/home/alex/workspace/spoke-sh/keel/AGENTS.md](/home/alex/workspace/spoke-sh/keel/AGENTS.md).

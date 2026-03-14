@@ -284,6 +284,17 @@ globe:
   cargo build --bin atext >/dev/null
   cargo run --quiet --bin atext -- globe
 
+# Verify all stories, regenerate the board, and stage all .keel artifacts.
+ship:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  keel verify run --all
+  keel generate
+  keel doctor
+  git add .keel
+  printf '\n\x1b[1;32mSHIPPED:\x1b[0m .keel artifacts synchronized.\n'
+  just screen
+
 quality: fmt-check cargo-check clippy
 
 keel *args:

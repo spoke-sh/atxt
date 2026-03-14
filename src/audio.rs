@@ -773,22 +773,16 @@ mod tests {
     }
 
     #[test]
-    fn decode_audio_summary_rejects_inputs_beyond_the_first_slice_budget() {
+    fn decode_audio_summary_truncates_inputs_beyond_the_first_slice_budget() {
         let fixture = TempWavFixture::oversized();
         let probe = probe_path(fixture.path());
 
-        let error = decode_audio_summary(fixture.path(), &probe)
-            .expect_err("oversized wav should be rejected");
+        let summary = decode_audio_summary(fixture.path(), &probe)
+            .expect("oversized wav should be successfully truncated to budget");
 
-        assert!(matches!(
-            error,
-            AudioDecodeError::SampleBudgetExceeded {
-                sample_count,
-                max_sample_count,
-            }
-            if sample_count == MAX_DECODE_SAMPLES as u64 + 1
-                && max_sample_count == MAX_DECODE_SAMPLES as u64
-        ));
+        // The duration should be capped to the duration of MAX_DECODE_SAMPLES
+        let expected_duration_ms = (MAX_DECODE_SAMPLES as u64 * 1000).div_ceil(8000);
+        assert_eq!(summary.duration_ms(), expected_duration_ms);
     }
 
     #[test]
