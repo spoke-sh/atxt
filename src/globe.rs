@@ -5,7 +5,7 @@ use txtplot::canvas::BrailleCanvas;
 use txtplot::three_d::{Vec3, ZBuffer, project_to_screen, rotate_x, rotate_y, plot_z, line_z};
 use colored::Color;
 
-/// State used to calculate and render project drift.
+/// State used to calculate and render project drift and navigation POIs.
 #[derive(Debug, Default)]
 pub struct ProjectDrift {
     pub client_lat: f64,
@@ -15,12 +15,50 @@ pub struct ProjectDrift {
     pub total_stories: usize,
     pub done_stories: usize,
     pub verified_stories: usize,
+    pub destinations: Vec<Destination>,
+    pub lighthouse: Option<Destination>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Destination {
+    pub id: String,
+    pub title: String,
+    pub lat: f64,
+    pub lon: f64,
+    pub completed: bool,
 }
 
 /// Probe the .keel board and test results to calculate current project drift.
 pub fn probe_project_drift() -> ProjectDrift {
     let mut drift = ProjectDrift::default();
 
+    // 1. Identify the Active Mission and its associated Epic
+    let mut active_mission_id = String::new();
+    let missions_path = Path::new(".keel/missions");
+    if let Ok(entries) = fs::read_dir(missions_path) {
+        let mut latest_time = String::new();
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                let readme_path = entry.path().join("README.md");
+                if let Ok(content) = fs::read_to_string(readme_path) {
+                    if content.contains("status: active") || content.contains("status: achieved") {
+                        let id = entry.file_name().to_string_lossy().to_string();
+                        let updated = content.lines()
+                            .find(|l| l.starts_with("updated_at: "))
+                            .map(|l| l[12..].to_string())
+                            .unwrap_or_default();
+                        
+                        if updated >= latest_time {
+                            latest_time = updated;
+                            active_mission_id = id;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. Count Stories and Verification
     let stories_path = Path::new(".keel/stories");
     if let Ok(entries) = fs::read_dir(stories_path) {
         for entry in entries.flatten() {
@@ -28,7 +66,6 @@ pub fn probe_project_drift() -> ProjectDrift {
                 drift.total_stories += 1;
                 let readme_path = entry.path().join("README.md");
                 if let Ok(content) = fs::read_to_string(readme_path) {
-                    // More robust check for status: done
                     if content.lines().any(|l| l.trim() == "status: done") {
                         drift.done_stories += 1;
                         if entry.path().join("manifest.yaml").exists() {
@@ -42,19 +79,44 @@ pub fn probe_project_drift() -> ProjectDrift {
 
     if drift.total_stories > 0 {
         let completion = drift.done_stories as f64 / drift.total_stories as f64;
-        // Latitude maps to completion (South Pole to North Pole)
         drift.client_lat = (completion - 0.5) * std::f64::consts::PI;
         drift.client_lon = 0.0;
 
         if drift.done_stories > 0 {
             let verification_rate = drift.verified_stories as f64 / drift.done_stories as f64;
-            // Model lags behind client if verification is incomplete
             drift.model_lat = (completion * verification_rate - 0.5) * std::f64::consts::PI;
-            // Introduce longitude drift for visibility
             drift.model_lon = (1.0 - verification_rate) * (std::f64::consts::PI / 4.0);
-        } else {
-            drift.model_lat = -0.5 * std::f64::consts::PI;
-            drift.model_lon = 0.0;
+        }
+    }
+
+    // 3. Map Epics to Destinations
+    let epics_path = Path::new(".keel/epics");
+    if let Ok(entries) = fs::read_dir(epics_path) {
+        for (i, entry) in entries.flatten().enumerate() {
+            if entry.path().is_dir() {
+                let id = entry.file_name().to_string_lossy().to_string();
+                let readme_path = entry.path().join("README.md");
+                if let Ok(content) = fs::read_to_string(readme_path) {
+                    let title = content.lines()
+                        .find(|l| l.starts_with("# "))
+                        .map(|l| l[2..].to_string())
+                        .unwrap_or_else(|| id.clone());
+                    
+                    let completed = content.contains("(done)");
+                    
+                    // Fixed locations for epics based on ID hash for stability
+                    let lat = ((i as f64 * 1.7).sin()) * (std::f64::consts::PI / 2.5);
+                    let lon = ((i as f64 * 2.9).cos()) * std::f64::consts::PI;
+                    
+                    let dest = Destination { id, title, lat, lon, completed };
+                    
+                    if !active_mission_id.is_empty() && content.contains(&format!("mission: {}", active_mission_id)) {
+                        drift.lighthouse = Some(dest.clone());
+                    } else {
+                        drift.destinations.push(dest);
+                    }
+                }
+            }
         }
     }
 
@@ -63,55 +125,69 @@ pub fn probe_project_drift() -> ProjectDrift {
 
 /// Render a 3D prototype of the Drift Globe.
 pub fn render_drift_globe(angle_x: f64, angle_y: f64, drift: &ProjectDrift) -> Result<String, Box<dyn Error>> {
-    let width_cells = 60;
-    let height_cells = 30;
+    let width_cells = 80;
+    let height_cells = 40;
     let mut canvas = BrailleCanvas::new(width_cells, height_cells);
     let mut zbuf = ZBuffer::from_canvas(&canvas);
 
     let radius = 1.2;
-    let camera_dist = 4.0;
-    let scale = 80.0;
+    let camera_dist = 4.5;
+    let scale = 120.0;
 
-    // 1. Draw Axis & Poles
     render_axis(&mut canvas, &mut zbuf, radius, angle_x, angle_y, camera_dist, scale);
+    draw_circle(&mut canvas, &mut zbuf, radius * 1.05, camera_dist, scale, Color::Blue);
+    render_terrain_and_grid(&mut canvas, &mut zbuf, radius, angle_x, angle_y, camera_dist, scale);
 
-    // 2. Draw the Globe Perimeter
-    draw_circle(&mut canvas, &mut zbuf, radius, camera_dist, scale, Color::BrightBlack);
+    for dest in &drift.destinations {
+        let pos = spherical_to_cartesian(dest.lat, dest.lon, radius);
+        let color = if dest.completed { Color::Cyan } else { Color::BrightBlack };
+        render_poi(&mut canvas, &mut zbuf, pos, angle_x, angle_y, camera_dist, scale, color);
+    }
 
-    // 3. Render Latitude/Longitude Grid
-    render_globe_grid(&mut canvas, &mut zbuf, radius, angle_x, angle_y, camera_dist, scale);
+    if let Some(ref lh) = drift.lighthouse {
+        let pos = spherical_to_cartesian(lh.lat, lh.lon, radius);
+        render_lighthouse(&mut canvas, &mut zbuf, pos, angle_x, angle_y, camera_dist, scale);
+    }
 
-    // 4. Render Drift Markers (Boats)
     let client_pos = spherical_to_cartesian(drift.client_lat, drift.client_lon, radius);
     let model_pos = spherical_to_cartesian(drift.model_lat, drift.model_lon, radius);
-    
-    let is_docked = (client_pos - model_pos).norm() < 0.01;
+    let is_docked = (client_pos - model_pos).norm() < 0.05;
 
     if is_docked {
-        // Render a single Yellow "Docked" boat
         render_marker(&mut canvas, &mut zbuf, client_pos, angle_x, angle_y, camera_dist, scale, Color::Yellow);
     } else {
         render_marker(&mut canvas, &mut zbuf, client_pos, angle_x, angle_y, camera_dist, scale, Color::Green);
         render_marker(&mut canvas, &mut zbuf, model_pos, angle_x, angle_y, camera_dist, scale, Color::Red);
+        
+        let c_rot = rotate_x(rotate_y(client_pos, angle_y), angle_x);
+        let m_rot = rotate_x(rotate_y(model_pos, angle_y), angle_x);
+        if c_rot.z < 0.0 && m_rot.z < 0.0 {
+             let s1 = project_to_screen(Vec3::new(c_rot.x, c_rot.y, c_rot.z + camera_dist), canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale).unwrap();
+             let s2 = project_to_screen(Vec3::new(m_rot.x, m_rot.y, m_rot.z + camera_dist), canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale).unwrap();
+             line_z(&mut canvas, &mut zbuf, s1, s2, Color::Yellow);
+        }
     }
 
-    // 5. Calculate Drift Metrics
+    let mut output = String::new();
+    output.push_str("\x1b[1matext Navigation Chart\x1b[0m\n");
+    output.push_str(&canvas.render_with_options(true, None));
+    
     let drift_vec = client_pos - model_pos;
     let drift_dist = drift_vec.norm();
-
-    let mut output = String::new();
-    output.push_str("\x1b[1mDrift Globe\x1b[0m\n");
-    output.push_str(&canvas.render_with_options(true, None));
     output.push_str(&format!(
-        "\nDrift Magnitude: \x1b[1;{}m{:.4}\x1b[0m (keel units)\n",
+        "\nDrift: \x1b[1;{}m{:.4}\x1b[0m | ",
         if drift_dist < 0.1 { "32" } else if drift_dist < 0.5 { "33" } else { "31" },
         drift_dist
     ));
     
     if is_docked {
-        output.push_str("Status: \x1b[1;33mDOCKING ACHIEVED\x1b[0m (Intent == Reality)\n");
+        output.push_str("\x1b[1;33mDOCKING ACHIEVED\x1b[0m\n");
     } else {
-        output.push_str("Status: \x1b[32m⛴ Intent\x1b[0m vs \x1b[31m⛵ Reality\x1b[0m\n");
+        output.push_str("\x1b[32m⛴ Intent\x1b[0m -> \x1b[31m⛵ Reality\x1b[0m\n");
+    }
+
+    if let Some(ref lh) = drift.lighthouse {
+        output.push_str(&format!("\x1b[1;37m🔦 Lighthouse (Current Mission): {}\x1b[0m\n", lh.title));
     }
 
     Ok(output)
@@ -122,6 +198,28 @@ fn spherical_to_cartesian(lat: f64, lon: f64, r: f64) -> Vec3 {
     let y = r * lat.sin();
     let z = r * lat.cos() * lon.cos();
     Vec3::new(x, y, z)
+}
+
+fn is_land(lat: f64, lon: f64) -> bool {
+    let val = (lat * 6.0).sin() * (lon * 4.0).cos() + (lat * 3.0).cos() * (lon * 8.0).sin();
+    val > 0.7
+}
+
+fn render_axis(
+    canvas: &mut BrailleCanvas,
+    zbuf: &mut ZBuffer,
+    r: f64,
+    angle_x: f64,
+    angle_y: f64,
+    camera_dist: f64,
+    scale: f64,
+) {
+    let p1 = Vec3::new(0.0, r * 1.3, 0.0);
+    let r1 = rotate_x(rotate_y(p1, angle_y), angle_x);
+    let v1 = Vec3::new(r1.x, r1.y, r1.z + camera_dist);
+    if let Some(s1) = project_to_screen(v1, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+        plot_z(canvas, zbuf, s1.0, s1.1, s1.2 - 0.1, Color::White);
+    }
 }
 
 fn draw_circle(
@@ -147,7 +245,7 @@ fn draw_circle(
     }
 }
 
-fn render_axis(
+fn render_terrain_and_grid(
     canvas: &mut BrailleCanvas,
     zbuf: &mut ZBuffer,
     r: f64,
@@ -156,85 +254,71 @@ fn render_axis(
     camera_dist: f64,
     scale: f64,
 ) {
-    // Vertical Axis (Pole to Pole)
-    let p1 = Vec3::new(0.0, r * 1.2, 0.0);
-    let p2 = Vec3::new(0.0, -r * 1.2, 0.0);
-    
-    let r1 = rotate_x(rotate_y(p1, angle_y), angle_x);
-    let r2 = rotate_x(rotate_y(p2, angle_y), angle_x);
-    
-    let v1 = Vec3::new(r1.x, r1.y, r1.z + camera_dist);
-    let v2 = Vec3::new(r2.x, r2.y, r2.z + camera_dist);
-    
-    if let (Some(s1), Some(s2)) = (
-        project_to_screen(v1, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale),
-        project_to_screen(v2, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale)
-    ) {
-        line_z(canvas, zbuf, s1, s2, Color::BrightBlack);
-        // North Star
-        plot_z(canvas, zbuf, s1.0, s1.1, s1.2 - 0.1, Color::White);
-    }
-}
+    let lat_steps = 30;
+    let lon_steps = 60;
 
-fn render_globe_grid(
-    canvas: &mut BrailleCanvas,
-    zbuf: &mut ZBuffer,
-    r: f64,
-    angle_x: f64,
-    angle_y: f64,
-    camera_dist: f64,
-    scale: f64,
-) {
-    let steps = 32;
-
-    // Latitudes (Equator to Poles)
-    for lat_idx in -4..=4 {
-        let lat = (lat_idx as f64) * std::f64::consts::PI / 10.0;
-        let mut prev: Option<(isize, isize, f64)> = None;
-        for lon_idx in 0..=steps {
-            let lon = (lon_idx as f64) * std::f64::consts::TAU / steps as f64;
+    for i in 0..lat_steps {
+        let lat = (i as f64 / (lat_steps - 1) as f64 - 0.5) * std::f64::consts::PI;
+        for j in 0..lon_steps {
+            let lon = (j as f64 / lon_steps as f64 - 0.5) * std::f64::consts::TAU;
             let p = spherical_to_cartesian(lat, lon, r);
             let rotated = rotate_x(rotate_y(p, angle_y), angle_x);
-            let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
             
             if rotated.z < 0.0 {
-                if let Some(curr) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
-                    if let Some(p) = prev {
-                        let color = if lat_idx == 0 { Color::Cyan } else { Color::BrightBlack };
-                        line_z(canvas, zbuf, p, curr, color);
+                let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
+                if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+                    if is_land(lat, lon) {
+                        plot_z(canvas, zbuf, x, y, z, Color::BrightBlack);
+                    } else if i % 6 == 0 || j % 6 == 0 {
+                        plot_z(canvas, zbuf, x, y, z, Color::Black);
                     }
-                    prev = Some(curr);
-                } else {
-                    prev = None;
                 }
-            } else {
-                prev = None;
             }
         }
     }
+}
 
-    // Longitudes
-    for lon_idx in -4..4 {
-        let lon = (lon_idx as f64) * std::f64::consts::PI / 4.0;
-        let mut prev: Option<(isize, isize, f64)> = None;
-        for lat_idx in -steps/2..=steps/2 {
-            let lat = (lat_idx as f64) * std::f64::consts::PI / steps as f64;
-            let p = spherical_to_cartesian(lat, lon, r);
-            let rotated = rotate_x(rotate_y(p, angle_y), angle_x);
-            let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
-            
-            if rotated.z < 0.0 {
-                if let Some(curr) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
-                    if let Some(p) = prev {
-                        let color = if lon_idx == 0 { Color::Yellow } else { Color::BrightBlack };
-                        line_z(canvas, zbuf, p, curr, color);
-                    }
-                    prev = Some(curr);
-                } else {
-                    prev = None;
+fn render_poi(
+    canvas: &mut BrailleCanvas,
+    zbuf: &mut ZBuffer,
+    pos: Vec3,
+    angle_x: f64,
+    angle_y: f64,
+    camera_dist: f64,
+    scale: f64,
+    color: Color,
+) {
+    let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
+    if rotated.z < 0.0 {
+        let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
+        if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+            for dx in -1..=1 {
+                for dy in -1..=1 {
+                    plot_z(canvas, zbuf, x + dx, y + dy, z - 0.1, color);
                 }
-            } else {
-                prev = None;
+            }
+        }
+    }
+}
+
+fn render_lighthouse(
+    canvas: &mut BrailleCanvas,
+    zbuf: &mut ZBuffer,
+    pos: Vec3,
+    angle_x: f64,
+    angle_y: f64,
+    camera_dist: f64,
+    scale: f64,
+) {
+    let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
+    if rotated.z < 0.0 {
+        let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
+        if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+            for dy in -6..=0 {
+                plot_z(canvas, zbuf, x, y + dy, z - 0.15, Color::White);
+            }
+            for dx in 1..15 {
+                plot_z(canvas, zbuf, x + dx, y - 6, z - 0.15, Color::Yellow);
             }
         }
     }
@@ -251,20 +335,18 @@ fn render_marker(
     color: Color,
 ) {
     let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
-    let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
-
-    if let Some((x, y, z)) = project_to_screen(
-        v_cam,
-        canvas.pixel_width() as f64,
-        canvas.pixel_height() as f64,
-        scale,
-    ) {
-        // Draw a distinct cross marker for the boat
-        for dx in -2..=2 {
-            plot_z(canvas, zbuf, x + dx, y, z - 0.1, color);
-        }
-        for dy in -2..=2 {
-            plot_z(canvas, zbuf, x, y + dy, z - 0.1, color);
+    if rotated.z < 0.0 {
+        let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
+        if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+            for dx in -2..=2 {
+                plot_z(canvas, zbuf, x + dx, y, z - 0.2, color);
+            }
+            for dy in -4..=0 {
+                plot_z(canvas, zbuf, x, y + dy, z - 0.2, color);
+            }
+            for i in 1..=3 {
+                plot_z(canvas, zbuf, x + i, y - 4 + i, z - 0.2, color);
+            }
         }
     }
 }
