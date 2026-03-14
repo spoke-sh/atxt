@@ -8,7 +8,7 @@
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
     keel = {
-      url = "git+ssh://git@github.com/spoke-sh/keel.git?ref=main&rev=91a2bb745112da11412b508d52abd1a8d312a754";
+      url = "git+ssh://git@github.com/spoke-sh/keel.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
       inputs.rust-overlay.follows = "rust-overlay";
