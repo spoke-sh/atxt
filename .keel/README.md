@@ -29,11 +29,15 @@
 |--------|--------|
 | [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | done |
 
-### [Project Operations](epics/VDoL6zQQe/) (draft)
-
 ### [Multimodal Video Verification](epics/VDsSA7qTy/) (done)
 
 | Voyage | Status |
 |--------|--------|
 | [Video Probing and Combined Summary Rendering](epics/VDsSA7qTy/voyages/VDsSGo91D/) | done |
+
+### [Interactive Strategic Navigation](epics/VDsisINGM/) (active)
+
+| Voyage | Status |
+|--------|--------|
+| [Interactive Terminal Loop and Globe Control](epics/VDsisINGM/voyages/VDsiveHYR/) | in-progress |
 
