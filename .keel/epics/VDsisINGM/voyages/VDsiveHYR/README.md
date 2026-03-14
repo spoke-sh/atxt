@@ -29,7 +29,7 @@ started_at: 2026-03-14T15:02:58
 
 | Title | Type | Status |
 |-------|------|--------|
-| [Implement Non-Blocking TTY Input and ANSI Refresh](../../../../stories/VDsj0I9KK/README.md) | feat | in-progress |
-| [Wire Live 3D Rotation to Navigation Chart](../../../../stories/VDsj0IML7/README.md) | feat | backlog |
-| [Add Interactive Navigation Tooltips and POI Highlighting](../../../../stories/VDsj0IcMw/README.md) | feat | backlog |
+| [Implement Non-Blocking TTY Input and ANSI Refresh](../../../../stories/VDsj0I9KK/README.md) | feat | needs-human-verification |
+| [Wire Live 3D Rotation to Navigation Chart](../../../../stories/VDsj0IML7/README.md) | feat | needs-human-verification |
+| [Add Interactive Navigation Tooltips and POI Highlighting](../../../../stories/VDsj0IcMw/README.md) | feat | needs-human-verification |
 <!-- END GENERATED -->
