@@ -7,6 +7,7 @@ pub mod audio;
 pub mod audio_render;
 pub mod cli;
 pub mod frame;
+pub mod globe;
 pub mod media;
 pub mod render;
 pub mod sequence;
@@ -31,6 +32,7 @@ pub use sequence::{
     TimedVisualSequenceError, decode_timed_sequence, summarize_timed_sequence,
 };
 pub use stats::render_stats;
+pub use globe::render_drift_globe;
 pub use still_image::{StillImageRenderError, render_still_image};
 pub use terminal::{
     ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,
