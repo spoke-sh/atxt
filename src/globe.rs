@@ -104,7 +104,7 @@ pub fn probe_project_drift() -> ProjectDrift {
                     
                     let completed = content.contains("(done)");
                     
-                    // Fixed locations for epics based on ID hash for stability
+                    // Spread locations
                     let lat = ((i as f64 * 1.7).sin()) * (std::f64::consts::PI / 2.5);
                     let lon = ((i as f64 * 2.9).cos()) * std::f64::consts::PI;
                     
@@ -123,16 +123,22 @@ pub fn probe_project_drift() -> ProjectDrift {
     drift
 }
 
-/// Render a 3D prototype of the Drift Globe.
-pub fn render_drift_globe(angle_x: f64, angle_y: f64, drift: &ProjectDrift) -> Result<String, Box<dyn Error>> {
-    let width_cells = 80;
-    let height_cells = 40;
-    let mut canvas = BrailleCanvas::new(width_cells, height_cells);
+/// Render a 3D Navigation Chart with dynamic sizing and clipping.
+pub fn render_drift_globe(
+    angle_x: f64, 
+    angle_y: f64, 
+    drift: &ProjectDrift,
+    width_cells: u16,
+    height_cells: u16,
+) -> Result<String, Box<dyn Error>> {
+    let mut canvas = BrailleCanvas::new(width_cells as usize, height_cells as usize);
     let mut zbuf = ZBuffer::from_canvas(&canvas);
 
     let radius = 1.2;
     let camera_dist = 4.5;
-    let scale = 120.0;
+    
+    // Scale globe to fit the smaller terminal dimension
+    let scale = (width_cells.min(height_cells * 2) as f64 * 1.5).min(150.0);
 
     render_axis(&mut canvas, &mut zbuf, radius, angle_x, angle_y, camera_dist, scale);
     draw_circle(&mut canvas, &mut zbuf, radius * 1.05, camera_dist, scale, Color::Blue);
@@ -162,9 +168,12 @@ pub fn render_drift_globe(angle_x: f64, angle_y: f64, drift: &ProjectDrift) -> R
         let c_rot = rotate_x(rotate_y(client_pos, angle_y), angle_x);
         let m_rot = rotate_x(rotate_y(model_pos, angle_y), angle_x);
         if c_rot.z < 0.0 && m_rot.z < 0.0 {
-             let s1 = project_to_screen(Vec3::new(c_rot.x, c_rot.y, c_rot.z + camera_dist), canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale).unwrap();
-             let s2 = project_to_screen(Vec3::new(m_rot.x, m_rot.y, m_rot.z + camera_dist), canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale).unwrap();
-             line_z(&mut canvas, &mut zbuf, s1, s2, Color::Yellow);
+             if let (Some(s1), Some(s2)) = (
+                 project_and_clip(&mut canvas, Vec3::new(c_rot.x, c_rot.y, c_rot.z + camera_dist), scale),
+                 project_and_clip(&mut canvas, Vec3::new(m_rot.x, m_rot.y, m_rot.z + camera_dist), scale)
+             ) {
+                 line_z(&mut canvas, &mut zbuf, s1, s2, Color::Yellow);
+             }
         }
     }
 
@@ -205,6 +214,21 @@ fn is_land(lat: f64, lon: f64) -> bool {
     val > 0.7
 }
 
+fn project_and_clip(canvas: &BrailleCanvas, v: Vec3, scale: f64) -> Option<(isize, isize, f64)> {
+    if let Some((x, y, z)) = project_to_screen(v, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+        if x >= 0 && x < canvas.pixel_width() as isize && y >= 0 && y < canvas.pixel_height() as isize {
+            return Some((x, y, z));
+        }
+    }
+    None
+}
+
+fn plot_clipped(canvas: &mut BrailleCanvas, zbuf: &mut ZBuffer, x: isize, y: isize, z: f64, color: Color) {
+    if x >= 0 && x < canvas.pixel_width() as isize && y >= 0 && y < canvas.pixel_height() as isize {
+        plot_z(canvas, zbuf, x, y, z, color);
+    }
+}
+
 fn render_axis(
     canvas: &mut BrailleCanvas,
     zbuf: &mut ZBuffer,
@@ -217,8 +241,8 @@ fn render_axis(
     let p1 = Vec3::new(0.0, r * 1.3, 0.0);
     let r1 = rotate_x(rotate_y(p1, angle_y), angle_x);
     let v1 = Vec3::new(r1.x, r1.y, r1.z + camera_dist);
-    if let Some(s1) = project_to_screen(v1, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
-        plot_z(canvas, zbuf, s1.0, s1.1, s1.2 - 0.1, Color::White);
+    if let Some(s1) = project_and_clip(canvas, v1, scale) {
+        plot_clipped(canvas, zbuf, s1.0, s1.1, s1.2 - 0.1, Color::White);
     }
 }
 
@@ -236,11 +260,13 @@ fn draw_circle(
         let angle = (i as f64) * std::f64::consts::TAU / steps as f64;
         let p = Vec3::new(r * angle.cos(), r * angle.sin(), 0.0);
         let v_cam = Vec3::new(p.x, p.y, p.z + camera_dist);
-        if let Some(curr) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+        if let Some(curr) = project_and_clip(canvas, v_cam, scale) {
             if let Some(p) = prev {
                 line_z(canvas, zbuf, p, curr, color);
             }
             prev = Some(curr);
+        } else {
+            prev = None;
         }
     }
 }
@@ -266,11 +292,11 @@ fn render_terrain_and_grid(
             
             if rotated.z < 0.0 {
                 let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
-                if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+                if let Some((x, y, z)) = project_and_clip(canvas, v_cam, scale) {
                     if is_land(lat, lon) {
-                        plot_z(canvas, zbuf, x, y, z, Color::BrightBlack);
+                        plot_clipped(canvas, zbuf, x, y, z, Color::BrightBlack);
                     } else if i % 6 == 0 || j % 6 == 0 {
-                        plot_z(canvas, zbuf, x, y, z, Color::Black);
+                        plot_clipped(canvas, zbuf, x, y, z, Color::Black);
                     }
                 }
             }
@@ -291,10 +317,10 @@ fn render_poi(
     let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
     if rotated.z < 0.0 {
         let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
-        if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+        if let Some((x, y, z)) = project_and_clip(canvas, v_cam, scale) {
             for dx in -1..=1 {
                 for dy in -1..=1 {
-                    plot_z(canvas, zbuf, x + dx, y + dy, z - 0.1, color);
+                    plot_clipped(canvas, zbuf, x + dx, y + dy, z - 0.1, color);
                 }
             }
         }
@@ -313,12 +339,12 @@ fn render_lighthouse(
     let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
     if rotated.z < 0.0 {
         let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
-        if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+        if let Some((x, y, z)) = project_and_clip(canvas, v_cam, scale) {
             for dy in -6..=0 {
-                plot_z(canvas, zbuf, x, y + dy, z - 0.15, Color::White);
+                plot_clipped(canvas, zbuf, x, y + dy, z - 0.15, Color::White);
             }
             for dx in 1..15 {
-                plot_z(canvas, zbuf, x + dx, y - 6, z - 0.15, Color::Yellow);
+                plot_clipped(canvas, zbuf, x + dx, y - 6, z - 0.15, Color::Yellow);
             }
         }
     }
@@ -337,15 +363,15 @@ fn render_marker(
     let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
     if rotated.z < 0.0 {
         let v_cam = Vec3::new(rotated.x, rotated.y, rotated.z + camera_dist);
-        if let Some((x, y, z)) = project_to_screen(v_cam, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale) {
+        if let Some((x, y, z)) = project_and_clip(canvas, v_cam, scale) {
             for dx in -2..=2 {
-                plot_z(canvas, zbuf, x + dx, y, z - 0.2, color);
+                plot_clipped(canvas, zbuf, x + dx, y, z - 0.2, color);
             }
             for dy in -4..=0 {
-                plot_z(canvas, zbuf, x, y + dy, z - 0.2, color);
+                plot_clipped(canvas, zbuf, x, y + dy, z - 0.2, color);
             }
             for i in 1..=3 {
-                plot_z(canvas, zbuf, x + i, y - 4 + i, z - 0.2, color);
+                plot_clipped(canvas, zbuf, x + i, y - 4 + i, z - 0.2, color);
             }
         }
     }
