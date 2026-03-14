@@ -30,7 +30,7 @@ impl fmt::Display for VideoDecodeError {
 impl Error for VideoDecodeError {}
 
 use crate::audio_render::render_audio_summary;
-use crate::render::{RenderPlan, RenderMode, OutputKind};
+use crate::render::{RenderPlan, RenderMode};
 use crate::sequence::summarize_timed_sequence;
 use crate::still_image::render_still_image;
 
