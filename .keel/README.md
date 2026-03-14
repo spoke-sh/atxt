@@ -29,3 +29,5 @@
 |--------|--------|
 | [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | done |
 
+### [Project Operations](epics/VDoL6zQQe/) (draft)
+

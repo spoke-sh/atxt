@@ -3,7 +3,7 @@ id: ask-about-keel-system-audio-feedback-support-for-transitions
 title: Ask About Keel System Audio Feedback Support For Transitions
 cadence:
   daily: true
-target-scope: VDgyaiPm5/VDgycpXSh
+target-scope: VDoL6zQQe
 created_at: 2026-03-13T17:00:05
 updated_at: 2026-03-13T17:00:05
 ---
