@@ -42,3 +42,15 @@ When asked to update the `txtplot` crate in this repository, use this sequence:
    - Ask the user whether they want to execute the recommended next step before taking it.
 7. Make a git commit only after the upgraded `txtplot` flow is verified, the human-level render signals have been reviewed, and the board is clean.
    - Include dependency updates, any fixture or expectation changes, and any generated `.keel` artifacts that were needed to restore a healthy state.
+
+## Drift Management and Correction
+
+When the 3D Drift Globe indicates significant divergence between project planning (Intent) and implementation (Reality):
+
+1. **Upgrade Keel:** Ensure the repository is tracking the latest stabilization features by following the [Keel Upgrade Workflow](#keel-upgrade-workflow).
+2. **Heal the Engine:** Resolve any `keel doctor` findings introduced by the upgrade or existing structural drift.
+3. **Course Correction:** Prioritize work that reduces the **Drift Magnitude**. This may include:
+   - Synchronizing the Keel board with actual source code state.
+   - Recording missing verification evidence.
+   - Closing out stalled stories or epics.
+4. **Sailing Alignment:** While immediate docking (zero drift) is not always required, agents must ensure the current development vector is pointed toward the same goal as the human intent.

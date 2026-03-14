@@ -59,6 +59,14 @@ When module ownership, workflows, or compatibility assumptions change, update th
 
 Ideas about world models, multimodal training, or compressed perception are interesting, but the repository should not present them as established outcomes ahead of working tooling.
 
+### 9. Drift-Disciplined Evolution
+
+When project planning (Intent) and implementation (Reality) diverge significantly, the project must prioritize course correction. When out of sync:
+1. Upgrade the Keel engine to ensure the latest stabilization tools are available.
+2. Resolve any issues introduced by the engine upgrade.
+3. Correct course to reduce drift magnitude.
+While immediate "docking" (zero drift) isn't mandatory, all active work must sail toward the same goal.
+
 ## Human and Agent Responsibilities
 
 | Human responsibilities | Contributor and agent responsibilities |
