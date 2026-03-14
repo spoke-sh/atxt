@@ -66,7 +66,10 @@ pub fn run_cli(args: &[String], env: &TerminalEnvironment) -> Result<String, Cli
         [command, path] if command == "render" => render_command(Path::new(path), env),
         [command] if command == "stats" => crate::render_stats().map_err(CliError::Stats),
         [command] if command == "screen" => screen_command(env),
-        [command] if command == "globe" => crate::render_drift_globe(0.5, 0.5).map_err(CliError::Globe),
+        [command] if command == "globe" => {
+            let drift = crate::globe::probe_project_drift();
+            crate::render_drift_globe(0.5, 0.5, &drift).map_err(CliError::Globe)
+        }
         _ => Err(CliError::Usage(USAGE)),
     }
 }
@@ -74,11 +77,16 @@ pub fn run_cli(args: &[String], env: &TerminalEnvironment) -> Result<String, Cli
 fn screen_command(env: &TerminalEnvironment) -> Result<String, CliError> {
     let mut output = String::new();
 
-    // 1. Project Progress
+    // 1. Drift Globe (Health & Position)
+    let drift = crate::globe::probe_project_drift();
+    output.push_str(&crate::render_drift_globe(0.5, 0.5, &drift).map_err(CliError::Screen)?);
+    output.push_str("\n---\n\n");
+
+    // 2. Project Progress (Momentum)
     output.push_str(&crate::render_stats().map_err(CliError::Screen)?);
     output.push_str("\n---\n\n");
 
-    // 2. Canonical Media Proofs
+    // 3. Canonical Media Proofs (Truth)
     let fixtures = [
         ("Static Image Proof (half-dark.png)", "src/testdata/half-dark.png"),
         (
