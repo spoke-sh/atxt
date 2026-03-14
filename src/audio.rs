@@ -710,6 +710,34 @@ mod tests {
     }
 
     #[test]
+    fn generate_canonical_audio_fixture_if_missing() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut path = root.to_path_buf();
+        path.push("src/testdata/pulse.wav");
+
+        if path.exists() {
+            return;
+        }
+
+        let spec = WavSpec {
+            channels: 1,
+            sample_rate: 8_000,
+            bits_per_sample: 16,
+            sample_format: SampleFormat::Int,
+        };
+        let mut writer = WavWriter::create(&path, spec).expect("pulse fixture should be created");
+        for frame in 0..1024_u32 {
+            let sample = if (frame / 128) % 2 == 0 {
+                i16::MAX / 2
+            } else {
+                i16::MIN / 2
+            };
+            writer.write_sample(sample).expect("sample should write");
+        }
+        writer.finalize().expect("pulse fixture should finalize");
+    }
+
+    #[test]
     fn audio_summary_validates_waveform_and_spectrogram_metadata() {
         let waveform = WaveformSummary::new(vec![
             WaveformBin::new(-1_000, 250),
