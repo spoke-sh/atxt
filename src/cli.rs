@@ -73,11 +73,67 @@ pub fn run_cli(args: &[String], env: &TerminalEnvironment) -> Result<String, Cli
         [command, path] if command == "render" => render_command(Path::new(path), env),
         [command] if command == "screen" => screen_command(env),
         [command] if command == "globe" => {
-            let drift = crate::globe::probe_project_drift();
-            crate::render_drift_globe(0.5, 0.5, &drift).map_err(CliError::Globe)
+            if env.stdout_is_tty {
+                run_interactive_globe(env).map(|_| String::new()).map_err(CliError::Globe)
+            } else {
+                let drift = crate::globe::probe_project_drift();
+                let width = env.columns.unwrap_or(80);
+                let height = env.rows.unwrap_or(40);
+                crate::render_drift_globe(0.5, 0.5, &drift, width, height).map_err(CliError::Globe)
+            }
         }
         _ => Err(CliError::Usage(USAGE)),
     }
+}
+
+fn run_interactive_globe(env: &TerminalEnvironment) -> Result<(), Box<dyn Error>> {
+    use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
+    use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+    use std::io::{Write, stdout};
+    use std::time::Duration;
+
+    enable_raw_mode()?;
+    let mut stdout = stdout();
+    
+    // Clear screen and hide cursor
+    write!(stdout, "\x1b[2J\x1b[H\x1b[?25l")?;
+    stdout.flush()?;
+
+    let mut angle_x = 0.5;
+    let mut angle_y = 0.5;
+    let drift = crate::globe::probe_project_drift();
+
+    loop {
+        let width = env.columns.unwrap_or(80);
+        let height = env.rows.unwrap_or(40);
+        let frame = crate::render_drift_globe(angle_x, angle_y, &drift, width, height)?;
+        
+        // Reset cursor to top-left and print frame
+        write!(stdout, "\x1b[H{}", frame)?;
+        stdout.flush()?;
+
+        if event::poll(Duration::from_millis(50))? {
+            if let Event::Key(KeyEvent { code, modifiers, .. }) = event::read()? {
+                match code {
+                    KeyCode::Char('q') => break,
+                    KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => break,
+                    KeyCode::Up => angle_x -= 0.1,
+                    KeyCode::Down => angle_x += 0.1,
+                    KeyCode::Left => angle_y -= 0.1,
+                    KeyCode::Right => angle_y += 0.1,
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    // Show cursor and disable raw mode
+    write!(stdout, "\x1b[?25h")?;
+    stdout.flush()?;
+    disable_raw_mode()?;
+    println!(); // Move to next line after interactive session
+
+    Ok(())
 }
 
 fn screen_command(env: &TerminalEnvironment) -> Result<String, CliError> {
@@ -85,7 +141,9 @@ fn screen_command(env: &TerminalEnvironment) -> Result<String, CliError> {
 
     // 1. Navigation Chart (Drift Globe + POIs + Lighthouse)
     let drift = crate::globe::probe_project_drift();
-    output.push_str(&crate::render_drift_globe(0.5, 0.5, &drift).map_err(CliError::Screen)?);
+    let width = env.columns.unwrap_or(80);
+    let height = env.rows.unwrap_or(40);
+    output.push_str(&crate::render_drift_globe(0.5, 0.5, &drift, width, height).map_err(CliError::Screen)?);
     output.push_str("\n---\n\n");
 
     // 2. Canonical Media Proofs (Truth)
