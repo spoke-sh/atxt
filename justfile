@@ -251,6 +251,11 @@ mission-status:
   esac
 
 # Print project progress visualizations.
+# Show the 3D Drift Globe prototype.
+globe:
+  cargo build --bin atext >/dev/null
+  cargo run --quiet --bin atext -- globe
+
 quality: fmt-check cargo-check clippy
 
 keel *args:
