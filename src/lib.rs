@@ -35,7 +35,7 @@ pub use sequence::{
 pub use stats::render_stats;
 pub use globe::render_drift_globe;
 pub use still_image::{StillImageRenderError, render_still_image};
-pub use video::{VideoDecodeError, VideoSummary, decode_video_summary};
+pub use video::{VideoDecodeError, VideoRenderError, VideoSummary, decode_video_summary, render_video_summary};
 pub use terminal::{
     ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,
     detect_terminal_profile,
