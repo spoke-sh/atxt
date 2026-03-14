@@ -362,7 +362,7 @@ pub fn decode_audio_summary(
     use symphonia::core::meta::MetadataOptions;
     use symphonia::core::probe::Hint;
 
-    if probe.kind != MediaKind::Audio {
+    if probe.kind != MediaKind::Audio && probe.kind != MediaKind::Video {
         return Err(AudioDecodeError::UnsupportedMediaKind { kind: probe.kind });
     }
 
@@ -393,17 +393,10 @@ pub fn decode_audio_summary(
     let track_id = track.id;
     let sample_rate = track.codec_params.sample_rate.unwrap_or(0);
     let channels = track.codec_params.channels.map(|c| c.count()).unwrap_or(0);
-    let sample_count = track.codec_params.n_frames.unwrap_or(0);
-
-    if sample_count > MAX_DECODE_SAMPLES as u64 {
-        return Err(AudioDecodeError::SampleBudgetExceeded {
-            sample_count,
-            max_sample_count: MAX_DECODE_SAMPLES as u64,
-        });
-    }
 
     let mut mono_samples = Vec::new();
     let mut float_buf: Option<AudioBuffer<f32>> = None;
+    let mut actual_channels = channels;
 
     loop {
         let packet = match format.next_packet() {
@@ -423,7 +416,11 @@ pub fn decode_audio_summary(
         let decoded = decoder.decode(&packet)?;
 
         if float_buf.as_ref().map_or(true, |b| b.spec() != decoded.spec()) {
-            float_buf = Some(AudioBuffer::<f32>::new(decoded.capacity() as u64, *decoded.spec()));
+            let spec = *decoded.spec();
+            if actual_channels == 0 {
+                actual_channels = spec.channels.count();
+            }
+            float_buf = Some(AudioBuffer::<f32>::new(decoded.capacity() as u64, spec));
         }
 
         if let Some(ref mut buf) = float_buf {
@@ -463,7 +460,7 @@ pub fn decode_audio_summary(
 
     AudioSummary::new(
         sample_rate,
-        channels as u16,
+        actual_channels as u16,
         duration_ms,
         waveform,
         spectrogram,
