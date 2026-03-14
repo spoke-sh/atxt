@@ -12,62 +12,49 @@ pub struct ProjectDrift {
     pub client_lon: f64,
     pub model_lat: f64,
     pub model_lon: f64,
+    pub total_stories: usize,
+    pub done_stories: usize,
+    pub verified_stories: usize,
 }
 
 /// Probe the .keel board and test results to calculate current project drift.
 pub fn probe_project_drift() -> ProjectDrift {
     let mut drift = ProjectDrift::default();
 
-    // 1. Calculate Client Positioning (Intent) from Keel Board
     let stories_path = Path::new(".keel/stories");
     if let Ok(entries) = fs::read_dir(stories_path) {
-        let mut total_stories = 0;
-        let mut done_stories = 0;
-
         for entry in entries.flatten() {
             if entry.path().is_dir() {
-                total_stories += 1;
+                drift.total_stories += 1;
                 let readme_path = entry.path().join("README.md");
                 if let Ok(content) = fs::read_to_string(readme_path) {
-                    if content.contains("status: done") {
-                        done_stories += 1;
+                    // More robust check for status: done
+                    if content.lines().any(|l| l.trim() == "status: done") {
+                        drift.done_stories += 1;
+                        if entry.path().join("manifest.yaml").exists() {
+                            drift.verified_stories += 1;
+                        }
                     }
                 }
             }
-        }
-
-        if total_stories > 0 {
-            // Latitude maps to story completion (0% = South Pole, 100% = North Pole)
-            let completion = done_stories as f64 / total_stories as f64;
-            drift.client_lat = (completion - 0.5) * std::f64::consts::PI;
-            // Longitude maps to relative progress (placeholder for now)
-            drift.client_lon = 0.0; 
         }
     }
 
-    // 2. Calculate Model Positioning (Reality) from Verification Manifests
-    // We'll use the ratio of stories with passing verification manifests.
-    if let Ok(entries) = fs::read_dir(stories_path) {
-        let mut total_done = 0;
-        let mut verified_done = 0;
+    if drift.total_stories > 0 {
+        let completion = drift.done_stories as f64 / drift.total_stories as f64;
+        // Latitude maps to completion (South Pole to North Pole)
+        drift.client_lat = (completion - 0.5) * std::f64::consts::PI;
+        drift.client_lon = 0.0;
 
-        for entry in entries.flatten() {
-            let readme_path = entry.path().join("README.md");
-            if let Ok(content) = fs::read_to_string(readme_path) {
-                if content.contains("status: done") {
-                    total_done += 1;
-                    if entry.path().join("manifest.yaml").exists() {
-                        verified_done += 1;
-                    }
-                }
-            }
-        }
-
-        if total_done > 0 {
-            let verification_rate = verified_done as f64 / total_done as f64;
-            drift.model_lat = drift.client_lat * verification_rate;
-            // Introduce a subtle longitude shift based on drift
-            drift.model_lon = (1.0 - verification_rate) * std::f64::consts::PI / 2.0;
+        if drift.done_stories > 0 {
+            let verification_rate = drift.verified_stories as f64 / drift.done_stories as f64;
+            // Model lags behind client if verification is incomplete
+            drift.model_lat = (completion * verification_rate - 0.5) * std::f64::consts::PI;
+            // Introduce longitude drift for visibility
+            drift.model_lon = (1.0 - verification_rate) * (std::f64::consts::PI / 4.0);
+        } else {
+            drift.model_lat = -0.5 * std::f64::consts::PI;
+            drift.model_lon = 0.0;
         }
     }
 
@@ -85,20 +72,30 @@ pub fn render_drift_globe(angle_x: f64, angle_y: f64, drift: &ProjectDrift) -> R
     let camera_dist = 4.0;
     let scale = 80.0;
 
-    // 1. Draw the Globe Perimeter
+    // 1. Draw Axis & Poles
+    render_axis(&mut canvas, &mut zbuf, radius, angle_x, angle_y, camera_dist, scale);
+
+    // 2. Draw the Globe Perimeter
     draw_circle(&mut canvas, &mut zbuf, radius, camera_dist, scale, Color::BrightBlack);
 
-    // 2. Render Latitude/Longitude Grid
+    // 3. Render Latitude/Longitude Grid
     render_globe_grid(&mut canvas, &mut zbuf, radius, angle_x, angle_y, camera_dist, scale);
 
-    // 3. Render Drift Markers (Boats)
+    // 4. Render Drift Markers (Boats)
     let client_pos = spherical_to_cartesian(drift.client_lat, drift.client_lon, radius);
-    render_marker(&mut canvas, &mut zbuf, client_pos, angle_x, angle_y, camera_dist, scale, Color::Green);
-
     let model_pos = spherical_to_cartesian(drift.model_lat, drift.model_lon, radius);
-    render_marker(&mut canvas, &mut zbuf, model_pos, angle_x, angle_y, camera_dist, scale, Color::Red);
+    
+    let is_docked = (client_pos - model_pos).norm() < 0.01;
 
-    // 4. Calculate Drift Metrics
+    if is_docked {
+        // Render a single Yellow "Docked" boat
+        render_marker(&mut canvas, &mut zbuf, client_pos, angle_x, angle_y, camera_dist, scale, Color::Yellow);
+    } else {
+        render_marker(&mut canvas, &mut zbuf, client_pos, angle_x, angle_y, camera_dist, scale, Color::Green);
+        render_marker(&mut canvas, &mut zbuf, model_pos, angle_x, angle_y, camera_dist, scale, Color::Red);
+    }
+
+    // 5. Calculate Drift Metrics
     let drift_vec = client_pos - model_pos;
     let drift_dist = drift_vec.norm();
 
@@ -107,10 +104,15 @@ pub fn render_drift_globe(angle_x: f64, angle_y: f64, drift: &ProjectDrift) -> R
     output.push_str(&canvas.render_with_options(true, None));
     output.push_str(&format!(
         "\nDrift Magnitude: \x1b[1;{}m{:.4}\x1b[0m (keel units)\n",
-        if drift_dist < 0.3 { "32" } else if drift_dist < 0.6 { "33" } else { "31" },
+        if drift_dist < 0.1 { "32" } else if drift_dist < 0.5 { "33" } else { "31" },
         drift_dist
     ));
-    output.push_str("Status: \x1b[32m⛴ Intent\x1b[0m vs \x1b[31m⛵ Reality\x1b[0m\n");
+    
+    if is_docked {
+        output.push_str("Status: \x1b[1;33mDOCKING ACHIEVED\x1b[0m (Intent == Reality)\n");
+    } else {
+        output.push_str("Status: \x1b[32m⛴ Intent\x1b[0m vs \x1b[31m⛵ Reality\x1b[0m\n");
+    }
 
     Ok(output)
 }
@@ -145,6 +147,35 @@ fn draw_circle(
     }
 }
 
+fn render_axis(
+    canvas: &mut BrailleCanvas,
+    zbuf: &mut ZBuffer,
+    r: f64,
+    angle_x: f64,
+    angle_y: f64,
+    camera_dist: f64,
+    scale: f64,
+) {
+    // Vertical Axis (Pole to Pole)
+    let p1 = Vec3::new(0.0, r * 1.2, 0.0);
+    let p2 = Vec3::new(0.0, -r * 1.2, 0.0);
+    
+    let r1 = rotate_x(rotate_y(p1, angle_y), angle_x);
+    let r2 = rotate_x(rotate_y(p2, angle_y), angle_x);
+    
+    let v1 = Vec3::new(r1.x, r1.y, r1.z + camera_dist);
+    let v2 = Vec3::new(r2.x, r2.y, r2.z + camera_dist);
+    
+    if let (Some(s1), Some(s2)) = (
+        project_to_screen(v1, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale),
+        project_to_screen(v2, canvas.pixel_width() as f64, canvas.pixel_height() as f64, scale)
+    ) {
+        line_z(canvas, zbuf, s1, s2, Color::BrightBlack);
+        // North Star
+        plot_z(canvas, zbuf, s1.0, s1.1, s1.2 - 0.1, Color::White);
+    }
+}
+
 fn render_globe_grid(
     canvas: &mut BrailleCanvas,
     zbuf: &mut ZBuffer,
@@ -156,8 +187,9 @@ fn render_globe_grid(
 ) {
     let steps = 32;
 
-    for lat_idx in -3..=3 {
-        let lat = (lat_idx as f64) * std::f64::consts::PI / 8.0;
+    // Latitudes (Equator to Poles)
+    for lat_idx in -4..=4 {
+        let lat = (lat_idx as f64) * std::f64::consts::PI / 10.0;
         let mut prev: Option<(isize, isize, f64)> = None;
         for lon_idx in 0..=steps {
             let lon = (lon_idx as f64) * std::f64::consts::TAU / steps as f64;
@@ -181,6 +213,7 @@ fn render_globe_grid(
         }
     }
 
+    // Longitudes
     for lon_idx in -4..4 {
         let lon = (lon_idx as f64) * std::f64::consts::PI / 4.0;
         let mut prev: Option<(isize, isize, f64)> = None;
@@ -226,6 +259,7 @@ fn render_marker(
         canvas.pixel_height() as f64,
         scale,
     ) {
+        // Draw a distinct cross marker for the boat
         for dx in -2..=2 {
             plot_z(canvas, zbuf, x + dx, y, z - 0.1, color);
         }
