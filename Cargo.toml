@@ -15,4 +15,5 @@ hound = "3.5.1"
 image = { version = "0.25.6", default-features = false, features = ["bmp", "gif", "jpeg", "png", "webp"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
+symphonia = { version = "0.5.5", features = ["mp3", "ogg", "vorbis", "flac", "wav", "pcm"] }
 txtplot = { git = "https://github.com/rupurt/txtplot.git", rev = "a7629f47a9e70979317c3b3b42c27d2f87f84fac" }
