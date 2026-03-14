@@ -6,7 +6,7 @@ use txtplot::three_d::{Vec3, ZBuffer, project_to_screen, rotate_x, rotate_y, plo
 use colored::Color;
 
 /// State used to calculate and render project drift and navigation POIs.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct ProjectDrift {
     pub client_lat: f64,
     pub client_lon: f64,
@@ -17,6 +17,7 @@ pub struct ProjectDrift {
     pub verified_stories: usize,
     pub destinations: Vec<Destination>,
     pub lighthouse: Option<Destination>,
+    pub nearest_poi: Option<Destination>,
 }
 
 #[derive(Debug, Clone)]
@@ -26,6 +27,50 @@ pub struct Destination {
     pub lat: f64,
     pub lon: f64,
     pub completed: bool,
+}
+
+impl ProjectDrift {
+    /// Update the nearest POI based on the current camera rotation.
+    pub fn update_nearest_poi(&mut self, angle_x: f64, angle_y: f64) {
+        let mut min_dist = f64::MAX;
+        let mut nearest = None;
+
+        // Camera looks at z < 0.0 (front of globe)
+        let cam_front = Vec3::new(0.0, 0.0, -1.0);
+
+        for dest in &self.destinations {
+            let pos = spherical_to_cartesian(dest.lat, dest.lon, 1.0);
+            let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
+            
+            // Only consider POIs on the front half
+            if rotated.z < 0.0 {
+                let dist = (rotated - cam_front).norm();
+                if dist < min_dist {
+                    min_dist = dist;
+                    nearest = Some(dest.clone());
+                }
+            }
+        }
+
+        if let Some(ref lh) = self.lighthouse {
+            let pos = spherical_to_cartesian(lh.lat, lh.lon, 1.0);
+            let rotated = rotate_x(rotate_y(pos, angle_y), angle_x);
+            if rotated.z < 0.0 {
+                let dist = (rotated - cam_front).norm();
+                if dist < min_dist {
+                    min_dist = dist;
+                    nearest = Some(lh.clone());
+                }
+            }
+        }
+
+        // Only highlight if close enough to center
+        if min_dist < 0.5 {
+            self.nearest_poi = nearest;
+        } else {
+            self.nearest_poi = None;
+        }
+    }
 }
 
 /// Probe the .keel board and test results to calculate current project drift.
@@ -131,6 +176,9 @@ pub fn render_drift_globe(
     width_cells: u16,
     height_cells: u16,
 ) -> Result<String, Box<dyn Error>> {
+    let mut drift = drift.clone(); // Clone to allow mutation of nearest_poi
+    drift.update_nearest_poi(angle_x, angle_y);
+
     let mut canvas = BrailleCanvas::new(width_cells as usize, height_cells as usize);
     let mut zbuf = ZBuffer::from_canvas(&canvas);
 
@@ -196,7 +244,14 @@ pub fn render_drift_globe(
     }
 
     if let Some(ref lh) = drift.lighthouse {
-        output.push_str(&format!("\x1b[1;37m🔦 Lighthouse (Current Mission): {}\x1b[0m\n", lh.title));
+        output.push_str(&format!("\x1b[1;37m🔦 Lighthouse (Mission Objective): {}\x1b[0m\n", lh.title));
+    }
+
+    if let Some(ref poi) = drift.nearest_poi {
+        let status = if poi.completed { "\x1b[32mDONE\x1b[0m" } else { "\x1b[33mBACKLOG\x1b[0m" };
+        output.push_str(&format!("\x1b[1;36m📍 Navigating: {} ({})\x1b[0m\n", poi.title, status));
+    } else {
+        output.push_str("\x1b[2m📍 Navigating: Uncharted Waters\x1b[0m\n");
     }
 
     Ok(output)
