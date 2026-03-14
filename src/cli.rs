@@ -82,6 +82,9 @@ fn screen_command(env: &TerminalEnvironment) -> Result<String, CliError> {
             "src/testdata/half-swap.gif",
         ),
         ("Audio Waveform Proof (pulse.wav)", "src/testdata/pulse.wav"),
+        ("Audio Waveform Proof (pulse.mp3)", "src/testdata/pulse.mp3"),
+        ("Audio Waveform Proof (pulse.ogg)", "src/testdata/pulse.ogg"),
+        ("Audio Waveform Proof (pulse.flac)", "src/testdata/pulse.flac"),
     ];
 
     for (label, path_str) in fixtures {
@@ -306,7 +309,7 @@ mod tests {
 
         match error {
             CliError::Usage(message) => {
-                assert_eq!(message, "usage: atext render <path> | atext stats")
+                assert_eq!(message, "usage: atext render <path> | atext screen | atext stats")
             }
             other => panic!("expected usage error, got {other:?}"),
         }
