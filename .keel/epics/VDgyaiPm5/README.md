@@ -20,8 +20,8 @@ index: 4
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/1 voyages complete, 1/3 stories done
+**Progress:** 1/1 voyages complete, 3/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Audio Decode And Summary Rendering](voyages/VDgycpXSh/) | in-progress | 1/3 |
+| [Audio Decode And Summary Rendering](voyages/VDgycpXSh/) | done | 3/3 |
 <!-- END GENERATED -->

@@ -23,9 +23,9 @@
 |--------|--------|
 | [Timed Sequence Decode And Contact Sheet Rendering](epics/VDfyDRgBo/voyages/VDfyYRyVs/) | done |
 
-### [Audio Summary Rendering](epics/VDgyaiPm5/) (active)
+### [Audio Summary Rendering](epics/VDgyaiPm5/) (done)
 
 | Voyage | Status |
 |--------|--------|
-| [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | in-progress |
+| [Audio Decode And Summary Rendering](epics/VDgyaiPm5/voyages/VDgycpXSh/) | done |
 
