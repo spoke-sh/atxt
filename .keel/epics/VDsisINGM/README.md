@@ -20,8 +20,8 @@ index: 7
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/1 voyages complete, 0/3 stories done
+**Progress:** 1/1 voyages complete, 3/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Interactive Terminal Loop and Globe Control](voyages/VDsiveHYR/) | in-progress | 0/3 |
+| [Interactive Terminal Loop and Globe Control](voyages/VDsiveHYR/) | done | 3/3 |
 <!-- END GENERATED -->

@@ -35,9 +35,9 @@
 |--------|--------|
 | [Video Probing and Combined Summary Rendering](epics/VDsSA7qTy/voyages/VDsSGo91D/) | done |
 
-### [Interactive Strategic Navigation](epics/VDsisINGM/) (active)
+### [Interactive Strategic Navigation](epics/VDsisINGM/) (done)
 
 | Voyage | Status |
 |--------|--------|
-| [Interactive Terminal Loop and Globe Control](epics/VDsisINGM/voyages/VDsiveHYR/) | in-progress |
+| [Interactive Terminal Loop and Globe Control](epics/VDsisINGM/voyages/VDsiveHYR/) | done |
 

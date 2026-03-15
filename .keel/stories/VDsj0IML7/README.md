@@ -2,14 +2,15 @@
 id: VDsj0IML7
 title: Wire Live 3D Rotation to Navigation Chart
 type: feat
-status: needs-human-verification
+status: done
 created_at: 2026-03-14T15:00:58
-updated_at: 2026-03-14T15:39:34
+updated_at: 2026-03-14T16:59:58
 operator-signal:
 scope: VDsisINGM/VDsiveHYR
 index: 2
 started_at: 2026-03-14T15:03:17
 submitted_at: 2026-03-14T15:39:34
+completed_at: 2026-03-14T16:59:58
 ---
 
 # Wire Live 3D Rotation to Navigation Chart

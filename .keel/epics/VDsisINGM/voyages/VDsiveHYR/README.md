@@ -1,12 +1,13 @@
 ---
 id: VDsiveHYR
 title: Interactive Terminal Loop and Globe Control
-status: in-progress
+status: done
 epic: VDsisINGM
 created_at: 2026-03-14T15:01:00
 index: 1
 updated_at: 2026-03-14T15:02:43
 started_at: 2026-03-14T15:02:58
+completed_at: 2026-03-14T16:59:58
 ---
 
 # Interactive Terminal Loop and Globe Control
@@ -20,16 +21,18 @@ started_at: 2026-03-14T15:02:58
 |----------|-------------|
 | [SRS.md](SRS.md) | Requirements and verification criteria |
 | [SDD.md](SDD.md) | Architecture and implementation details |
+| [VOYAGE_REPORT.md](VOYAGE_REPORT.md) | Narrative summary of implementation and evidence |
+| [COMPLIANCE_REPORT.md](COMPLIANCE_REPORT.md) | Traceability matrix and verification proof |
 <!-- END DOCUMENTS -->
 
 ## Stories
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/3 stories complete
+**Progress:** 3/3 stories complete
 
 | Title | Type | Status |
 |-------|------|--------|
-| [Implement Non-Blocking TTY Input and ANSI Refresh](../../../../stories/VDsj0I9KK/README.md) | feat | needs-human-verification |
-| [Wire Live 3D Rotation to Navigation Chart](../../../../stories/VDsj0IML7/README.md) | feat | needs-human-verification |
-| [Add Interactive Navigation Tooltips and POI Highlighting](../../../../stories/VDsj0IcMw/README.md) | feat | needs-human-verification |
+| [Implement Non-Blocking TTY Input and ANSI Refresh](../../../../stories/VDsj0I9KK/README.md) | feat | done |
+| [Wire Live 3D Rotation to Navigation Chart](../../../../stories/VDsj0IML7/README.md) | feat | done |
+| [Add Interactive Navigation Tooltips and POI Highlighting](../../../../stories/VDsj0IcMw/README.md) | feat | done |
 <!-- END GENERATED -->

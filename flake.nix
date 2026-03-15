@@ -53,32 +53,11 @@
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
         src = craneLib.cleanCargoSource ./.;
         keelSrc = keel.outPath;
-        keelCargoToml = pkgs.lib.importTOML "${keelSrc}/Cargo.toml";
-        keelRustPlatform = pkgs.makeRustPlatform {
-          cargo = rustToolchain;
-          rustc = rustToolchain;
-        };
-        keelPkg = keelRustPlatform.buildRustPackage {
-          pname = "keel";
-          version = keelCargoToml.package.version;
-          src = keelSrc;
-          cargoLock = {
-            lockFile = "${keelSrc}/Cargo.lock";
-            outputHashes = {
-              "txtplot-0.1.0" = "sha256-PXj4ntPJ1UXda++7gcE+yk2cCLy/CFBMBGxgfBGSH5c=";
-            };
+        keelPkg = pkgs.callPackage "${keelSrc}/nix/keel.nix" {
+          rustPlatform = pkgs.makeRustPlatform {
+            cargo = rustToolchain;
+            rustc = rustToolchain;
           };
-          nativeBuildInputs = [
-            pkgs.pkg-config
-          ];
-          nativeCheckInputs = [
-            pkgs.git
-          ];
-          buildInputs = [
-            pkgs.zstd
-          ];
-          # Mirror dojo: keep the CLI available even while upstream doctests are failing.
-          doCheck = false;
         };
         siftPkg = sift.packages.${system}.sift;
         commonArgs = {
@@ -86,7 +65,11 @@
           strictDeps = true;
         };
 
-        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
+          outputHashes = {
+            "git+https://github.com/rupurt/txtplot.git?rev=a7629f47a9e70979317c3b3b42c27d2f87f84fac#a7629f47a9e70979317c3b3b42c27d2f87f84fac" = "sha256-bC6zo1yhJg41iz69XbXqwIKOfNVXwFke0vzcSMbqvFE=";
+          };
+        });
         package = craneLib.buildPackage (
           commonArgs
           // {
