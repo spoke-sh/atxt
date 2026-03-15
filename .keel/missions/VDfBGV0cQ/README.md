@@ -1,11 +1,12 @@
 ---
 id: VDfBGV0cQ
 title: Input Probing and Terminal Capability Detection
-status: achieved
+status: verified
 created_at: 2026-03-12T07:25:44
-updated_at: 2026-03-12T07:49:06
+updated_at: 2026-03-15T13:25:48
 activated_at: 2026-03-12T07:32:04
 achieved_at: 2026-03-12T07:49:06
+verified_at: 2026-03-15T13:25:48
 ---
 
 # Input Probing and Terminal Capability Detection
