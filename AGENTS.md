@@ -11,6 +11,30 @@ Repository-local instructions for agents working in `atext`.
 - Follow the shared Keel operating model in [/home/alex/workspace/spoke-sh/keel/AGENTS.md](/home/alex/workspace/spoke-sh/keel/AGENTS.md).
 - This file only adds `atext`-specific guidance that should be applied on top of the upstream Keel instructions.
 
+## Operational Guidance
+
+Keel is an engine with strict constraints. Your primary responsibility is to execute tactical moves that advance the board state while maintaining board integrity.
+
+### Core Principles
+
+1. **Gardening First**: You MUST tend to the garden by fixing `just keel doctor` errors, discharging automated backlog, and resolving structural drift BEFORE notifying the human operator or requesting input.
+2. **Heartbeat Hygiene**: Monitor the system's pulse with `just keel heartbeat` and `just keel health --scene`. The pacemaker is derived from repository activity; uncommitted energy in the worktree is tactical debt that should be closed autonomously by landing the sealing commit.
+3. **Notification Discipline**: Ping the human operator ONLY when you need input on design direction or application behavior. Resolve technical drift and tactical moves autonomously.
+
+### Session Start & Human Interaction
+
+When a human user opens the chat or "pokes" you (for example, "Wake up" or "I'm poking you"), you MUST immediately energize the system and orient yourself by following the **Human Interaction & Pokes** workflow in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atext/INSTRUCTIONS.md):
+
+1. **Heartbeat**: Run `just keel heartbeat` to inspect current charge and whether the worktree is carrying uncommitted energy.
+2. **Pulse**: Run `just keel health --scene` to check subsystem stability.
+3. **Scan**: Run `just keel mission next --status` and `just keel pulse`.
+4. **Confirm**: Run `just keel flow --scene` to verify whether the LIGHT IS ON or the board is idle waiting for fresh repository activity.
+5. **Diagnose**: Run `just keel doctor` to ensure board integrity before proceeding.
+
+### Procedural Instructions
+
+Follow the formal procedural loops and checklists defined in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atext/INSTRUCTIONS.md).
+
 ## Keel Upgrade Workflow
 
 When asked to update Keel in this repository, use this sequence:
