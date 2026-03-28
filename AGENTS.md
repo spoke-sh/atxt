@@ -21,9 +21,19 @@ Keel is an engine with strict constraints. Your primary responsibility is to exe
 2. **Heartbeat Hygiene**: Monitor the system's pulse with `just keel heartbeat` and `just keel health --scene`. The pacemaker is derived from repository activity; uncommitted energy in the worktree is tactical debt that should be closed autonomously by landing the sealing commit.
 3. **Notification Discipline**: Ping the human operator ONLY when you need input on design direction or application behavior. Resolve technical drift and tactical moves autonomously.
 
+### Canonical Turn Loop
+
+Keel's operator rhythm is the `Orient -> Inspect -> Pull -> Ship -> Close` loop surfaced by `just keel turn`.
+
+- **Orient**: Inspect charge and board stability with `just keel heartbeat`, `just keel health --scene`, `just keel flow --scene`, and `just keel doctor`.
+- **Inspect**: Read current demand with `just keel mission next --status`, `just keel pulse`, `just keel roles`, and `just keel next --role <role> --explain` when routing is unclear.
+- **Pull**: Select one role-scoped slice with `just keel next --role <role>`.
+- **Ship**: Execute the slice, record proof, and advance lifecycle state.
+- **Close**: Land the relevant transition and the sealing commit that clears open-loop energy.
+
 ### Session Start & Human Interaction
 
-When a human user opens the chat or "pokes" you (for example, "Wake up" or "I'm poking you"), you MUST immediately energize the system and orient yourself by following the **Human Interaction & Pokes** workflow in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atext/INSTRUCTIONS.md):
+When a human user opens the chat or "pokes" you (for example, "Wake up" or "I'm poking you"), you MUST immediately perform the `Orient` and `Inspect` halves of the turn loop by following the **Human Interaction & Pokes** workflow in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atext/INSTRUCTIONS.md):
 
 1. **Heartbeat**: Run `just keel heartbeat` to inspect current charge and whether the worktree is carrying uncommitted energy.
 2. **Pulse**: Run `just keel health --scene` to check subsystem stability.
