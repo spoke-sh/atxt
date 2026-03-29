@@ -22,7 +22,8 @@ mission: VFDYMA8Mq
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/0 voyages complete, 0/0 stories done
+**Progress:** 0/1 voyages complete, 0/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
+| [CLI Contract Wiring And Inspection Output](voyages/VFDj0ZOQj/) | planned | 0/3 |
 <!-- END GENERATED -->

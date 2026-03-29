@@ -41,5 +41,9 @@
 |--------|--------|
 | [Interactive Terminal Loop and Globe Control](epics/VDsisINGM/voyages/VDsiveHYR/) | done |
 
-### [CLI Inspection And Surface Alignment](epics/VFDYN9LOV/) (draft)
+### [CLI Inspection And Surface Alignment](epics/VFDYN9LOV/) (active)
+
+| Voyage | Status |
+|--------|--------|
+| [CLI Contract Wiring And Inspection Output](epics/VFDYN9LOV/voyages/VFDj0ZOQj/) | planned |
 
