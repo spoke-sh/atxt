@@ -41,3 +41,5 @@
 |--------|--------|
 | [Interactive Terminal Loop and Globe Control](epics/VDsisINGM/voyages/VDsiveHYR/) | done |
 
+### [CLI Inspection And Surface Alignment](epics/VFDYN9LOV/) (draft)
+
