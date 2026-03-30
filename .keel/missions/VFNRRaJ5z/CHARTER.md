@@ -6,7 +6,7 @@ Archetype: Voyage
 
 | ID | Description | Verification |
 |----|-------------|--------------|
-| MG-01 | Deliver a library-first public surface so a downstream Rust crate can probe, plan, decode, and render media to terminal text by depending on `atext` directly, without routing through the CLI entry point or requiring external binaries in `$PATH`. | board: _TBD_ |
+| MG-01 | Deliver a library-first public surface so a downstream Rust crate can probe, plan, decode, and render media to terminal text by depending on `atext` directly, without routing through the CLI entry point or requiring external binaries in `$PATH`. | board: VFNe2qYHS |
 
 ## Strategy
 
@@ -24,6 +24,6 @@ Archetype: Voyage
 
 ## Halting Rules
 
-- DO NOT halt while the linked epic still has unfinished voyage or story work.
-- HALT when the library surface compiles cleanly without CLI dependencies, the high-level rendering entry point works for still image, animated image, and audio paths, and the proof program demonstrates downstream usage.
+- DO NOT halt while epic VFNe2qYHS still has unfinished voyage or story work.
+- HALT when epic VFNe2qYHS is done and the library surface compiles cleanly without CLI dependencies, the high-level rendering entry point works for still image, animated image, and audio paths, and the proof program demonstrates downstream usage.
 - YIELD to human after achievement for verification review, or sooner if the only remaining question is whether the feature-gate boundaries are drawn at the right modules.
