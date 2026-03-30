@@ -113,7 +113,7 @@ pub fn render_to_text(path: &Path, profile: &TerminalProfile) -> Result<String, 
             render_still_image(&frame, &plan).map_err(RenderError::StillRender)
         }
         MediaKind::AnimatedImage => {
-            let sequence = decode_timed_sequence(path, &probe).map_err(RenderError::TimedDecode)?;
+            let sequence = decode_timed_sequence(path, &probe, Some(4)).map_err(RenderError::TimedDecode)?;
             let frame = summarize_timed_sequence(&sequence).map_err(RenderError::TimedSummary)?;
             render_still_image(&frame, &plan).map_err(RenderError::StillRender)
         }

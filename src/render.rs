@@ -143,10 +143,10 @@ pub fn plan_render(probe: &ProbeResult, terminal: &TerminalProfile) -> RenderPla
                     reason: PlanningReason::CapturedSequenceFallback,
                 }
             } else {
-                intent.mode = RenderMode::ContactSheet;
+                intent.mode = RenderMode::Braille;
                 RenderPlan {
                     intent,
-                    output: OutputKind::SingleFrame,
+                    output: OutputKind::FrameSequence,
                     degraded: false,
                     reason: PlanningReason::Direct,
                 }
@@ -244,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn render_planning_prefers_contact_sheet_for_interactive_timed_media() {
+    fn render_planning_prefers_playback_for_interactive_timed_media() {
         let probe = ProbeResult::new(MediaKind::AnimatedImage)
             .with_completeness(ProbeCompleteness::Partial);
         let terminal = TerminalProfile {
@@ -260,8 +260,8 @@ mod tests {
 
         let plan = plan_render(&probe, &terminal);
 
-        assert_eq!(plan.intent.mode, RenderMode::ContactSheet);
-        assert_eq!(plan.output, OutputKind::SingleFrame);
+        assert_eq!(plan.intent.mode, RenderMode::Braille);
+        assert_eq!(plan.output, OutputKind::FrameSequence);
         assert!(!plan.degraded);
         assert_eq!(plan.reason, PlanningReason::Direct);
     }

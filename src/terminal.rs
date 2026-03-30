@@ -55,6 +55,15 @@ pub struct TerminalEnvironment {
 impl TerminalEnvironment {
     /// Capture the current process environment into a testable snapshot.
     pub fn capture() -> Self {
+        let (columns, rows) = if io::stdout().is_terminal() {
+            crossterm::terminal::size().ok().map(|(c, r)| (Some(c), Some(r))).unwrap_or((None, None))
+        } else {
+            (
+                env::var("COLUMNS").ok().and_then(|v| v.parse().ok()),
+                env::var("LINES").ok().and_then(|v| v.parse().ok()),
+            )
+        };
+
         Self {
             term: env::var("TERM").ok(),
             colorterm: env::var("COLORTERM").ok(),
@@ -62,12 +71,8 @@ impl TerminalEnvironment {
             tmux: env::var_os("TMUX").is_some(),
             ssh_connection: env::var_os("SSH_CONNECTION").is_some(),
             stdout_is_tty: io::stdout().is_terminal(),
-            columns: env::var("COLUMNS")
-                .ok()
-                .and_then(|value| value.parse::<u16>().ok()),
-            rows: env::var("LINES")
-                .ok()
-                .and_then(|value| value.parse::<u16>().ok()),
+            columns,
+            rows,
         }
     }
 }
@@ -141,8 +146,8 @@ pub fn detect_terminal_profile(env: &TerminalEnvironment) -> TerminalProfile {
     } else {
         SessionMode::Captured
     };
-    let unicode_reliable = env.stdout_is_tty && term != "dumb";
-    let animation_allowed = matches!(session_mode, SessionMode::Interactive) && unicode_reliable;
+    let unicode_reliable = term != "dumb" && !term.is_empty();
+    let animation_allowed = matches!(session_mode, SessionMode::Interactive) && env.stdout_is_tty && unicode_reliable;
     let size = match (env.columns, env.rows) {
         (Some(columns), Some(rows)) => Some(TerminalSize::new(columns, rows)),
         _ => None,

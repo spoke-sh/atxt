@@ -179,11 +179,15 @@ fn render_command(path: &Path, env: &TerminalEnvironment) -> Result<String, CliE
     let terminal = detect_terminal_profile(env);
     let plan = plan_render(&probe, &terminal);
 
+    if plan.output == crate::render::OutputKind::FrameSequence {
+        return run_playback(path, &probe, &plan);
+    }
+
     if probe.kind == crate::media::MediaKind::Video {
         let summary = crate::video::decode_video_summary(path, &probe).map_err(CliError::VideoDecode)?;
         crate::video::render_video_summary(&summary, &plan).map_err(CliError::VideoRender)
     } else if probe.kind.is_timed_visual() {
-        let sequence = decode_timed_sequence(path, &probe).map_err(CliError::TimedDecode)?;
+        let sequence = decode_timed_sequence(path, &probe, Some(4)).map_err(CliError::TimedDecode)?;
         let frame = summarize_timed_sequence(&sequence).map_err(CliError::TimedSummary)?;
         render_still_image(&frame, &plan).map_err(CliError::Render)
     } else if probe.kind == crate::media::MediaKind::Audio {
@@ -193,6 +197,75 @@ fn render_command(path: &Path, env: &TerminalEnvironment) -> Result<String, CliE
         let frame = decode_still_image(path).map_err(CliError::StillDecode)?;
         render_still_image(&frame, &plan).map_err(CliError::Render)
     }
+}
+
+fn run_playback(path: &Path, probe: &crate::ProbeResult, plan: &crate::RenderPlan) -> Result<String, CliError> {
+    use std::io::{Write, stdout};
+    use std::thread;
+    use std::time::Duration;
+
+    let sequence = decode_timed_sequence(path, probe, None).map_err(CliError::TimedDecode)?;
+    let mut stdout = stdout();
+    
+    // Clear screen and hide cursor
+    write!(stdout, "\x1b[2J\x1b[H\x1b[?25l")
+        .map_err(|e| CliError::Screen(Box::new(e)))?;
+    stdout.flush().map_err(|e| CliError::Screen(Box::new(e)))?;
+
+    let mut previous_frame_output: Option<String> = None;
+    let mut previous_timestamp_ms = 0;
+
+    for (index, sample) in sequence.samples().iter().enumerate() {
+        if index > 0 {
+            let delay_ms = sample.timestamp_ms.saturating_sub(previous_timestamp_ms);
+            thread::sleep(Duration::from_millis(delay_ms));
+        }
+        
+        // Prepare a single-frame plan for the individual frame
+        let mut frame_plan = plan.clone();
+        frame_plan.output = crate::render::OutputKind::SingleFrame;
+        
+        let frame_output = render_still_image(&sample.frame, &frame_plan).map_err(CliError::Render)?;
+        
+        // Apply delta encoding if we have a previous frame of the same size
+        match &previous_frame_output {
+            Some(prev) if prev.len() == frame_output.len() => {
+                let mut line_index = 1;
+                let mut col_index = 1;
+                for (p, c) in prev.chars().zip(frame_output.chars()) {
+                    if p != c {
+                        // Move cursor to line_index, col_index and print character c
+                        write!(stdout, "\x1b[{};{}H{}", line_index, col_index, c)
+                            .map_err(|e| CliError::Screen(Box::new(e)))?;
+                    }
+                    if c == '\n' {
+                        line_index += 1;
+                        col_index = 1;
+                    } else {
+                        col_index += 1;
+                    }
+                }
+            }
+            _ => {
+                // First frame or size change: redraw full frame
+                write!(stdout, "\x1b[H{}", frame_output)
+                    .map_err(|e| CliError::Screen(Box::new(e)))?;
+            }
+        }
+        
+        stdout.flush().map_err(|e| CliError::Screen(Box::new(e)))?;
+        
+        previous_timestamp_ms = sample.timestamp_ms;
+        previous_frame_output = Some(frame_output);
+    }
+
+    // Show cursor and move to next line
+    write!(stdout, "\x1b[?25h")
+        .map_err(|e| CliError::Screen(Box::new(e)))?;
+    stdout.flush().map_err(|e| CliError::Screen(Box::new(e)))?;
+    println!();
+
+    Ok(String::new())
 }
 
 #[cfg(test)]
@@ -348,7 +421,7 @@ mod tests {
                 no_color: false,
                 tmux: false,
                 ssh_connection: false,
-                stdout_is_tty: true,
+                stdout_is_tty: false,
                 columns: Some(8),
                 rows: Some(2),
             },

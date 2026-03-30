@@ -111,13 +111,6 @@ fn fit_cell_dimensions(
     let max_height =
         u32::from(max_height.unwrap_or(u16::try_from(source_height).unwrap_or(u16::MAX))).max(1);
 
-    if source_width <= max_width && source_height <= max_height {
-        return (
-            u16::try_from(source_width).unwrap_or(u16::MAX),
-            u16::try_from(source_height).unwrap_or(u16::MAX),
-        );
-    }
-
     let width_limited = u64::from(source_width) * u64::from(max_height)
         >= u64::from(source_height) * u64::from(max_width);
 

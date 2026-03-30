@@ -9,7 +9,6 @@ use image::AnimationDecoder;
 use crate::frame::{Rgba8, VisualFrame, VisualFrameError};
 use crate::media::{MediaKind, MediaTiming, PixelDimensions, ProbeResult};
 
-const DEFAULT_SEQUENCE_SAMPLE_BUDGET: usize = 4;
 
 /// One representative frame sampled from a timed visual sequence.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -325,9 +324,10 @@ impl TimedVisualSequence {
 pub fn decode_timed_sequence(
     path: &Path,
     probe: &ProbeResult,
+    sample_limit: Option<usize>,
 ) -> Result<TimedVisualSequence, TimedSequenceDecodeError> {
     match probe.kind {
-        MediaKind::AnimatedImage => decode_gif_sequence(path, probe),
+        MediaKind::AnimatedImage => decode_gif_sequence(path, probe, sample_limit),
         MediaKind::Video => Err(TimedSequenceDecodeError::DecodeBackendUnavailable {
             path: path.to_path_buf(),
             kind: probe.kind,
@@ -422,6 +422,7 @@ pub fn summarize_timed_sequence(
 fn decode_gif_sequence(
     path: &Path,
     probe: &ProbeResult,
+    sample_limit: Option<usize>,
 ) -> Result<TimedVisualSequence, TimedSequenceDecodeError> {
     let file = File::open(path).map_err(|source| TimedSequenceDecodeError::ReadFailed {
         path: path.to_path_buf(),
@@ -440,7 +441,11 @@ fn decode_gif_sequence(
         }
     })?;
     let decoded_frame_count = frames.len();
-    let sample_indices = select_sample_indices(frames.len(), DEFAULT_SEQUENCE_SAMPLE_BUDGET);
+    let sample_indices = if let Some(limit) = sample_limit {
+        select_sample_indices(frames.len(), limit)
+    } else {
+        (0..frames.len()).collect()
+    };
 
     if sample_indices.is_empty() {
         return Err(TimedSequenceDecodeError::InvalidSequence(
@@ -723,7 +728,7 @@ mod tests {
         let probe = probe_path(gif.path());
 
         let sequence =
-            decode_timed_sequence(gif.path(), &probe).expect("gif sequence should decode");
+            decode_timed_sequence(gif.path(), &probe, Some(4)).expect("gif sequence should decode");
 
         assert_eq!(probe.completeness, ProbeCompleteness::Complete);
         assert_eq!(sequence.kind(), MediaKind::AnimatedImage);
@@ -747,7 +752,7 @@ mod tests {
         write_grayscale_gif(gif.path(), &[0, 255]);
         let probe = probe_path(gif.path());
         let sequence =
-            decode_timed_sequence(gif.path(), &probe).expect("gif sequence should decode");
+            decode_timed_sequence(gif.path(), &probe, Some(4)).expect("gif sequence should decode");
         let summary =
             summarize_timed_sequence(&sequence).expect("contact sheet summary should build");
         let plan = plan_render(
@@ -758,7 +763,7 @@ mod tests {
                 no_color: false,
                 tmux: false,
                 ssh_connection: false,
-                stdout_is_tty: true,
+                stdout_is_tty: false,
                 columns: Some(4),
                 rows: Some(2),
             }),
@@ -776,7 +781,7 @@ mod tests {
     fn decode_timed_sequence_rejects_video_until_backend_exists() {
         let probe =
             ProbeResult::new(MediaKind::Video).with_completeness(ProbeCompleteness::Partial);
-        let error = decode_timed_sequence(Path::new("clip.mp4"), &probe).unwrap_err();
+        let error = decode_timed_sequence(Path::new("clip.mp4"), &probe, Some(4)).unwrap_err();
 
         match error {
             TimedSequenceDecodeError::DecodeBackendUnavailable { kind, .. } => {
