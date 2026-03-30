@@ -1,13 +1,15 @@
 ---
 # system-managed
 id: VFNeJVpOI
-status: planned
+status: done
 epic: VFNe2qYHS
 created_at: 2026-03-30T12:25:59
 # authored
 title: Library Rendering API and Downstream Proof
 index: 2
 updated_at: 2026-03-30T12:31:59
+started_at: 2026-03-30T14:21:41
+completed_at: 2026-03-30T14:25:51
 ---
 
 # Library Rendering API and Downstream Proof
@@ -21,15 +23,17 @@ updated_at: 2026-03-30T12:31:59
 |----------|-------------|
 | [SRS.md](SRS.md) | Requirements and verification criteria |
 | [SDD.md](SDD.md) | Architecture and implementation details |
+| [VOYAGE_REPORT.md](VOYAGE_REPORT.md) | Narrative summary of implementation and evidence |
+| [COMPLIANCE_REPORT.md](COMPLIANCE_REPORT.md) | Traceability matrix and verification proof |
 <!-- END DOCUMENTS -->
 
 ## Stories
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/2 stories complete
+**Progress:** 2/2 stories complete
 
 | Title | Type | Status |
 |-------|------|--------|
-| [Implement High-Level Render To Text Entry Point](../../../../stories/VFNfBamXi/README.md) | feat | backlog |
-| [Add Downstream Library Proof Example](../../../../stories/VFNfBhLbO/README.md) | feat | backlog |
+| [Implement High-Level Render To Text Entry Point](../../../../stories/VFNfBamXi/README.md) | feat | done |
+| [Add Downstream Library Proof Example](../../../../stories/VFNfBhLbO/README.md) | feat | done |
 <!-- END GENERATED -->

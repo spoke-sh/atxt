@@ -22,9 +22,9 @@ mission: VFNRRaJ5z
 ## Voyages
 
 <!-- BEGIN GENERATED -->
-**Progress:** 0/2 voyages complete, 0/5 stories done
+**Progress:** 2/2 voyages complete, 5/5 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Feature-Gate CLI and External Dependencies](voyages/VFNeIPz9b/) | planned | 0/3 |
-| [Library Rendering API and Downstream Proof](voyages/VFNeJVpOI/) | planned | 0/2 |
+| [Feature-Gate CLI and External Dependencies](voyages/VFNeIPz9b/) | done | 3/3 |
+| [Library Rendering API and Downstream Proof](voyages/VFNeJVpOI/) | done | 2/2 |
 <!-- END GENERATED -->

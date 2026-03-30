@@ -1,15 +1,17 @@
 ---
 # system-managed
 id: VFNfBhLbO
-status: backlog
+status: done
 created_at: 2026-03-30T12:29:27
-updated_at: 2026-03-30T12:31:59
+updated_at: 2026-03-30T14:25:46
 # authored
 title: Add Downstream Library Proof Example
 type: feat
 operator-signal:
 scope: VFNe2qYHS/VFNeJVpOI
 index: 2
+started_at: 2026-03-30T14:24:32
+completed_at: 2026-03-30T14:25:46
 ---
 
 # Add Downstream Library Proof Example
@@ -20,6 +22,6 @@ Add a Cargo example program (`examples/render_demo.rs`) that depends on `atext` 
 
 ## Acceptance Criteria
 
-- [ ] [SRS-04/AC-01] An example program exists in `examples/` that compiles with `cargo build --example render_demo --no-default-features` <!-- verify: cargo build, SRS-04:start:end -->
-- [ ] [SRS-04/AC-02] The example renders at least one still image and one audio fixture to stdout using a synthetic terminal profile <!-- verify: cargo run --example, SRS-04:start:end -->
-- [ ] [SRS-NFR-02/AC-03] The example compiles and runs in CI without an interactive terminal or ffprobe on PATH <!-- verify: cargo run --example, SRS-NFR-02:start:end -->
+- [x] [SRS-04/AC-01] An example program exists in `examples/` that compiles with `cargo build --example render_demo --no-default-features` <!-- verify: cargo build --example render_demo --no-default-features, SRS-04:start:end -->
+- [x] [SRS-04/AC-02] The example renders at least one still image and one audio fixture to stdout using a synthetic terminal profile <!-- verify: cargo run --example render_demo --no-default-features, SRS-04:start:end -->
+- [x] [SRS-NFR-02/AC-03] The example compiles and runs in CI without an interactive terminal or ffprobe on PATH <!-- verify: cargo run --example render_demo --no-default-features, SRS-NFR-02:start:end -->

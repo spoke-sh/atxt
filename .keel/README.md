@@ -47,10 +47,10 @@
 |--------|--------|
 | [CLI Contract Wiring And Inspection Output](epics/VFDYN9LOV/voyages/VFDj0ZOQj/) | planned |
 
-### [Library-First Crate Surface](epics/VFNe2qYHS/) (active)
+### [Library-First Crate Surface](epics/VFNe2qYHS/) (done)
 
 | Voyage | Status |
 |--------|--------|
-| [Feature-Gate CLI and External Dependencies](epics/VFNe2qYHS/voyages/VFNeIPz9b/) | planned |
-| [Library Rendering API and Downstream Proof](epics/VFNe2qYHS/voyages/VFNeJVpOI/) | planned |
+| [Feature-Gate CLI and External Dependencies](epics/VFNe2qYHS/voyages/VFNeIPz9b/) | done |
+| [Library Rendering API and Downstream Proof](epics/VFNe2qYHS/voyages/VFNeJVpOI/) | done |
 
