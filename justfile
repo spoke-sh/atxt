@@ -6,10 +6,10 @@ default:
 
 # Show the current project progress and canonical verification proofs.
 screen:
-  cargo build --bin atext >/dev/null
+  cargo build --bin atxt >/dev/null
   just mission-status
   printf '\n'
-  cargo run --quiet --bin atext -- screen
+  cargo run --quiet --bin atxt -- screen
   printf '\n'
   just video-signal
   printf '\n'
@@ -27,23 +27,23 @@ video-signal:
   if [[ "$target_dir" != /* ]]; then
     target_dir="$repo_root/$target_dir"
   fi
-  atext_bin="$target_dir/debug/atext"
+  atxt_bin="$target_dir/debug/atxt"
 
   if [[ ! -f "$fixture" ]]; then
     printf 'error: video mission fixture not found: %s\n' "$fixture" >&2
     exit 1
   fi
 
-  cargo build --bin atext >/dev/null
+  cargo build --bin atxt >/dev/null
 
-  printf 'atext video signal\n'
+  printf 'atxt video signal\n'
   printf 'fixture: %s\n' "${fixture#$repo_root/}"
   printf 'rendering multimodal summary...\n'
-  TERM=xterm-256color COLORTERM=truecolor COLUMNS=80 LINES=24 "$atext_bin" render "$fixture"
+  TERM=xterm-256color COLORTERM=truecolor COLUMNS=80 LINES=24 "$atxt_bin" render "$fixture"
 
 # Build the workspace binary.
 build:
-  cargo build --bin atext
+  cargo build --bin atxt
 
 fmt:
   cargo fmt --all
@@ -66,9 +66,9 @@ test:
 doctest:
   cargo test --doc
 
-# Run the atext CLI with arbitrary arguments.
+# Run the atxt CLI with arbitrary arguments.
 run *args:
-  cargo run --quiet --bin atext -- {{args}}
+  cargo run --quiet --bin atxt -- {{args}}
 
 # Print the canonical timed-sequence verification signal.
 signal:
@@ -81,14 +81,14 @@ signal:
   if [[ "$target_dir" != /* ]]; then
     target_dir="$repo_root/$target_dir"
   fi
-  atext_bin="$target_dir/debug/atext"
+  atxt_bin="$target_dir/debug/atxt"
 
   if [[ ! -f "$fixture" ]]; then
     printf 'error: mission fixture not found: %s\n' "$fixture" >&2
     exit 1
   fi
 
-  cargo build --bin atext >/dev/null
+  cargo build --bin atxt >/dev/null
 
   if command -v ffprobe >/dev/null 2>&1; then
     dimensions="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$fixture" | head -n1)"
@@ -101,13 +101,13 @@ signal:
   render_direct() {
     local output_file="$1"
     local command_string
-    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=8 LINES=2 %q render %q' "$repo_root" "$atext_bin" "$fixture"
+    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=8 LINES=2 %q render %q' "$repo_root" "$atxt_bin" "$fixture"
     script -qec "$command_string" /dev/null | tr -d '\r' >"$output_file"
   }
 
   render_degraded() {
     local output_file="$1"
-    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=8 LINES=4 "$atext_bin" render "$fixture" >"$output_file"
+    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=8 LINES=4 "$atxt_bin" render "$fixture" >"$output_file"
   }
 
   direct_output="$(mktemp)"
@@ -132,7 +132,7 @@ signal:
     exit 1
   fi
 
-  printf 'atext signal\n'
+  printf 'atxt signal\n'
   printf 'fixture: %s\n' "${fixture#$repo_root/}"
   printf 'dimensions: %s\n' "$dimensions"
   printf 'source frames: %s\n' "$frame_count"
@@ -155,25 +155,25 @@ audio-signal:
   if [[ "$target_dir" != /* ]]; then
     target_dir="$repo_root/$target_dir"
   fi
-  atext_bin="$target_dir/debug/atext"
+  atxt_bin="$target_dir/debug/atxt"
 
   if [[ ! -f "$fixture" ]]; then
     printf 'error: mission fixture not found: %s\n' "$fixture" >&2
     exit 1
   fi
 
-  cargo build --bin atext >/dev/null
+  cargo build --bin atxt >/dev/null
 
   render_direct() {
     local output_file="$1"
     local command_string
-    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=16 LINES=4 %q render %q' "$repo_root" "$atext_bin" "$fixture"
+    printf -v command_string 'cd %q && TERM=xterm-256color COLORTERM=truecolor COLUMNS=16 LINES=4 %q render %q' "$repo_root" "$atxt_bin" "$fixture"
     script -qec "$command_string" /dev/null | tr -d '\r' >"$output_file"
   }
 
   render_degraded() {
     local output_file="$1"
-    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=16 LINES=4 "$atext_bin" render "$fixture" >"$output_file"
+    TERM=dumb NO_COLOR=1 SSH_CONNECTION=mission COLUMNS=16 LINES=4 "$atxt_bin" render "$fixture" >"$output_file"
   }
 
   direct_output="$(mktemp)"
@@ -198,7 +198,7 @@ audio-signal:
     exit 1
   fi
 
-  printf 'atext audio signal\n'
+  printf 'atxt audio signal\n'
   printf 'fixture: %s\n' "${fixture#$repo_root/}"
   printf 'direct terminal: interactive tty, truecolor, waveform braille path\n'
   printf 'direct render:\n'
@@ -234,7 +234,7 @@ mission-status:
 
   mission_files=(.keel/missions/*/README.md)
   if ((${#mission_files[@]} == 0)); then
-    printf '%s\n' "atext mission" "status: none" "note: no missions found"
+    printf '%s\n' "atxt mission" "status: none" "note: no missions found"
     exit 0
   fi
 
@@ -264,7 +264,7 @@ mission-status:
   mission_title="$(frontmatter_value "$selected_file" title)"
   mission_status="$(frontmatter_value "$selected_file" status)"
 
-  printf 'atext mission\n'
+  printf 'atxt mission\n'
   printf 'id: %s\n' "$mission_id"
   printf 'title: %s\n' "$mission_title"
   printf 'status: %s\n' "$mission_status"
@@ -281,8 +281,8 @@ mission-status:
 # Print project progress visualizations.
 # Show the 3D Drift Globe prototype.
 globe:
-  cargo build --bin atext >/dev/null
-  cargo run --quiet --bin atext -- globe
+  cargo build --bin atxt >/dev/null
+  cargo run --quiet --bin atxt -- globe
 
 # Verify all stories, regenerate the board, and stage all .keel artifacts.
 ship:

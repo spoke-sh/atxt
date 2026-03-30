@@ -1,4 +1,4 @@
-//! Foundational crate types for `atext`.
+//! Foundational crate types for `atxt`.
 //!
 //! The initial crate surface is intentionally small. It defines the
 //! project's core concepts before format decoders and renderers land.
@@ -140,7 +140,7 @@ mod tests {
     fn temp_png() -> PathBuf {
         let id = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let mut path = env::temp_dir();
-        path.push(format!("atext-lib-test-{}-{}.png", process::id(), id));
+        path.push(format!("atxt-lib-test-{}-{}.png", process::id(), id));
 
         let mut img = image::RgbaImage::new(4, 4);
         for y in 0..4 {

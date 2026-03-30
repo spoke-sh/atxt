@@ -65,7 +65,7 @@ pub fn render_stats() -> Result<String, Box<dyn Error>> {
 
     // Add labels.
     let mut output = String::new();
-    output.push_str("atext project progress: cumulative stories and voyages\n");
+    output.push_str("atxt project progress: cumulative stories and voyages\n");
     output.push_str(&chart.canvas.render_no_color());
     output.push_str("\n");
     

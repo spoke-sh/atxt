@@ -1,8 +1,8 @@
-# atext Constitution
+# atxt Constitution
 
 > Prefer truthful terminal-native inspection over brittle high-fidelity illusions.
 
-This document defines the project rules for evolving `atext` without losing the core product intent.
+This document defines the project rules for evolving `atxt` without losing the core product intent.
 
 ## Document Hierarchy
 
@@ -18,7 +18,7 @@ Humans decide the product direction and compatibility posture. Contributors and 
 
 ## Project Model
 
-`atext` is expected to become both:
+`atxt` is expected to become both:
 
 - a reusable Rust media-to-text engine
 - a CLI for direct terminal use and agentic workflows
@@ -45,7 +45,7 @@ The primary question is whether a human or agent can inspect the media truthfull
 
 ### 5. Degradation must be explicit and useful
 
-When the environment cannot support the preferred renderer, `atext` should choose a fallback that remains informative and predictable.
+When the environment cannot support the preferred renderer, `atxt` should choose a fallback that remains informative and predictable.
 
 ### 6. Adapters are replaceable, render contracts are stable
 
@@ -97,4 +97,4 @@ The project should resist these failure modes by default:
 
 ## Evolution
 
-This constitution should change when the project meaningfully changes. If `atext` grows beyond the current bootstrap model, update this document and [ARCHITECTURE.md](ARCHITECTURE.md) together.
+This constitution should change when the project meaningfully changes. If `atxt` grows beyond the current bootstrap model, update this document and [ARCHITECTURE.md](ARCHITECTURE.md) together.

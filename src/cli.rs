@@ -10,7 +10,7 @@ use crate::{
     plan_render, probe_path, render_audio_summary, render_still_image, summarize_timed_sequence,
 };
 
-const USAGE: &str = "usage: atext render <path> | atext screen | atext stats | atext globe";
+const USAGE: &str = "usage: atxt render <path> | atxt screen | atxt stats | atxt globe";
 
 /// User-facing CLI failures for the current renderable verification slices.
 #[derive(Debug)]
@@ -219,7 +219,7 @@ mod tests {
         fn new() -> Self {
             let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
-            path.push(format!("atext-cli-test-{}-{}.png", process::id(), id));
+            path.push(format!("atxt-cli-test-{}-{}.png", process::id(), id));
 
             let mut image = RgbaImage::new(8, 8);
             for y in 0..8 {
@@ -256,7 +256,7 @@ mod tests {
         fn new() -> Self {
             let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
-            path.push(format!("atext-cli-test-{}-{}.gif", process::id(), id));
+            path.push(format!("atxt-cli-test-{}-{}.gif", process::id(), id));
 
             let file = File::create(&path).expect("fixture gif should be created");
             let mut encoder = Encoder::new(file, 8, 8, &[]).expect("gif encoder should open");
@@ -385,7 +385,7 @@ mod tests {
 
         match error {
             CliError::Usage(message) => {
-                assert_eq!(message, "usage: atext render <path> | atext screen | atext stats | atext globe")
+                assert_eq!(message, "usage: atxt render <path> | atxt screen | atxt stats | atxt globe")
             }
             other => panic!("expected usage error, got {other:?}"),
         }

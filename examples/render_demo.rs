@@ -1,4 +1,4 @@
-//! Proof program demonstrating `atext` as a library dependency.
+//! Proof program demonstrating `atxt` as a library dependency.
 //!
 //! This example renders canonical fixtures using the high-level
 //! `render_to_text` entry point with a synthetic terminal profile,
@@ -9,7 +9,7 @@
 
 use std::path::Path;
 
-use atext::{TerminalEnvironment, detect_terminal_profile, render_to_text};
+use atxt::{TerminalEnvironment, detect_terminal_profile, render_to_text};
 
 fn main() {
     let profile = detect_terminal_profile(&TerminalEnvironment {

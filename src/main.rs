@@ -3,7 +3,7 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
 
-    match atext::run_cli(&args, &atext::TerminalEnvironment::capture()) {
+    match atxt::run_cli(&args, &atxt::TerminalEnvironment::capture()) {
         Ok(output) => {
             print!("{output}");
             ExitCode::SUCCESS

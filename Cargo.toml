@@ -1,5 +1,5 @@
 [package]
-name = "atext"
+name = "atxt"
 version = "0.1.0"
 edition = "2024"
 description = "Render media as text for terminals, SSH, tmux, and verification workflows"

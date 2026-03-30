@@ -1,8 +1,8 @@
-# atext
+# atxt
 
 Render anything as text.
 
-`atext` is a Rust project for turning images, video, GIFs, audio, and eventually richer media formats into terminal-native textual renderings that survive `tmux`, `ssh`, CI logs, and agentic verification workflows.
+`atxt` is a Rust project for turning images, video, GIFs, audio, and eventually richer media formats into terminal-native textual renderings that survive `tmux`, `ssh`, CI logs, and agentic verification workflows.
 
 The immediate goal is operational, not nostalgic: make arbitrary media inspectable inside the environments where agents and terminal-heavy developers already work. If the resulting representations become useful for multimodal training or world-model research later, that is a downstream question, not the product promise.
 
@@ -29,7 +29,7 @@ Most terminal media tools break down in one of four ways:
 - they optimize for novelty over truthful inspection
 - they treat each format as a separate product instead of normalizing them into one rendering pipeline
 
-`atext` is intended to take the opposite approach:
+`atxt` is intended to take the opposite approach:
 
 - probe inputs automatically
 - detect terminal capabilities automatically
@@ -116,4 +116,4 @@ just flake-check
 
 ## Research Posture
 
-`atext` may become a useful compression layer for machine perception experiments, but the repository should not over-claim that. The near-term bar is much simpler: can a person or agent inspect media meaningfully through text in hostile terminal environments?
+`atxt` may become a useful compression layer for machine perception experiments, but the repository should not over-claim that. The near-term bar is much simpler: can a person or agent inspect media meaningfully through text in hostile terminal environments?

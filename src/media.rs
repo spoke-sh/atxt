@@ -371,7 +371,7 @@ mod tests {
         fn new() -> Self {
             let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
-            path.push(format!("atext-media-test-{}-{}.gif", process::id(), id));
+            path.push(format!("atxt-media-test-{}-{}.gif", process::id(), id));
             Self { path }
         }
 
@@ -394,7 +394,7 @@ mod tests {
         fn new() -> Self {
             let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
-            path.push(format!("atext-media-test-{}-{}.wav", process::id(), id));
+            path.push(format!("atxt-media-test-{}-{}.wav", process::id(), id));
             Self { path }
         }
 

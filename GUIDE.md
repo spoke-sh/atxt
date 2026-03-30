@@ -1,6 +1,6 @@
 # Contributor Guide
 
-This guide explains how to extend `atext` without fighting the intended product shape.
+This guide explains how to extend `atxt` without fighting the intended product shape.
 
 ## Start Here
 

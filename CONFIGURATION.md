@@ -1,6 +1,6 @@
 # Configuration Guide
 
-`atext` does not currently use a project-specific runtime config file. Configuration lives in the development environment, the crate manifest, and the eventual CLI and API surfaces.
+`atxt` does not currently use a project-specific runtime config file. Configuration lives in the development environment, the crate manifest, and the eventual CLI and API surfaces.
 
 ## Configuration Layers
 
@@ -59,7 +59,7 @@ If the public capability of the crate changes, update `Cargo.toml` first and the
 
 ## Terminal Environment Inputs
 
-`atext` is expected to auto-detect capabilities from the runtime environment. These are environmental inputs, not project config:
+`atxt` is expected to auto-detect capabilities from the runtime environment. These are environmental inputs, not project config:
 
 - `TERM`
 - `COLORTERM`
@@ -72,13 +72,13 @@ Future implementation may also inspect whether stdout is a TTY and whether the s
 
 ## Project-specific Environment Variables
 
-No `atext`-specific environment variables are required today.
+No `atxt`-specific environment variables are required today.
 
 ## Non-goals
 
 These are intentionally outside the current configuration model:
 
-- a mandatory `atext.toml` file for normal operation
+- a mandatory `atxt.toml` file for normal operation
 - renderer-specific hidden global state
 - per-format config systems that bypass shared detection logic
 

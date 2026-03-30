@@ -1,6 +1,6 @@
 # INSTRUCTIONS.md
 
-Procedural instructions and workflow guidance for agents working with `atext` under Keel.
+Procedural instructions and workflow guidance for agents working with `atxt` under Keel.
 
 ## Path Mapping
 
@@ -137,7 +137,7 @@ Use CLI commands only; do not move `.keel` files manually.
 
 When the 3D Drift Globe indicates significant divergence between project planning (Intent) and implementation (Reality):
 
-1. **Upgrade Keel:** Ensure the repository is tracking the latest stabilization features by following the [Keel Upgrade Workflow](/home/alex/workspace/spoke-sh/atext/AGENTS.md#keel-upgrade-workflow).
+1. **Upgrade Keel:** Ensure the repository is tracking the latest stabilization features by following the [Keel Upgrade Workflow](/home/alex/workspace/spoke-sh/atxt/AGENTS.md#keel-upgrade-workflow).
 2. **Heal the Engine:** Resolve any `keel doctor` findings introduced by the upgrade or existing structural drift.
 3. **Course Correction:** Prioritize work that reduces the **Drift Magnitude**. This may include:
    - Synchronizing the Keel board with actual source code state.

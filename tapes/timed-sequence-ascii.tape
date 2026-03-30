@@ -6,6 +6,6 @@ Set Height 14
 Set FontSize 16
 Set TypingSpeed 0ms
 
-Type "TERM=dumb NO_COLOR=1 ./target/debug/atext render src/testdata/half-swap.gif"
+Type "TERM=dumb NO_COLOR=1 ./target/debug/atxt render src/testdata/half-swap.gif"
 Enter
 Sleep 1s

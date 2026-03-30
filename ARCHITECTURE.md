@@ -1,6 +1,6 @@
-# atext Architecture
+# atxt Architecture
 
-This document describes the intended implementation architecture for `atext`: the canonical pipeline, ownership boundaries, and extension seams that should remain stable as the project moves from bootstrap into a working renderer.
+This document describes the intended implementation architecture for `atxt`: the canonical pipeline, ownership boundaries, and extension seams that should remain stable as the project moves from bootstrap into a working renderer.
 
 ## Scope
 
@@ -8,7 +8,7 @@ This is the implementation contract for data flow and module ownership. Project 
 
 ## Architecture in One Sentence
 
-`atext` should decode many media formats into a small set of normalized representations and render those representations into terminal-safe text based on detected terminal capabilities.
+`atxt` should decode many media formats into a small set of normalized representations and render those representations into terminal-safe text based on detected terminal capabilities.
 
 ## Canonical Pipeline
 

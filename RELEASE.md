@@ -1,6 +1,6 @@
 # Release Process
 
-`atext` is in an early bootstrap phase and currently uses a straightforward manual release process.
+`atxt` is in an early bootstrap phase and currently uses a straightforward manual release process.
 
 ## Release Contract
 

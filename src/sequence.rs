@@ -583,7 +583,7 @@ mod tests {
         fn new() -> Self {
             let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
-            path.push(format!("atext-sequence-test-{}-{}.gif", process::id(), id));
+            path.push(format!("atxt-sequence-test-{}-{}.gif", process::id(), id));
             Self { path }
         }
 

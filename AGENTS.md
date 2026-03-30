@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Repository-local instructions for agents working in `atext`.
+Repository-local instructions for agents working in `atxt`.
 
 ## Path Mapping
 
@@ -9,7 +9,7 @@ Repository-local instructions for agents working in `atext`.
 ## Base Guidance
 
 - Follow the shared Keel operating model in [/home/alex/workspace/spoke-sh/keel/AGENTS.md](/home/alex/workspace/spoke-sh/keel/AGENTS.md).
-- This file only adds `atext`-specific guidance that should be applied on top of the upstream Keel instructions.
+- This file only adds `atxt`-specific guidance that should be applied on top of the upstream Keel instructions.
 
 ## Operational Guidance
 
@@ -33,7 +33,7 @@ Keel's operator rhythm is the `Orient -> Inspect -> Pull -> Ship -> Close` loop 
 
 ### Session Start & Human Interaction
 
-When a human user opens the chat or "pokes" you (for example, "Wake up" or "I'm poking you"), you MUST immediately perform the `Orient` and `Inspect` halves of the turn loop by following the **Human Interaction & Pokes** workflow in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atext/INSTRUCTIONS.md):
+When a human user opens the chat or "pokes" you (for example, "Wake up" or "I'm poking you"), you MUST immediately perform the `Orient` and `Inspect` halves of the turn loop by following the **Human Interaction & Pokes** workflow in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atxt/INSTRUCTIONS.md):
 
 1. **Heartbeat**: Run `just keel heartbeat` to inspect current charge and whether the worktree is carrying uncommitted energy.
 2. **Pulse**: Run `just keel health --scene` to check subsystem stability.
@@ -43,14 +43,14 @@ When a human user opens the chat or "pokes" you (for example, "Wake up" or "I'm 
 
 ### Procedural Instructions
 
-Follow the formal procedural loops and checklists defined in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atext/INSTRUCTIONS.md).
+Follow the formal procedural loops and checklists defined in [INSTRUCTIONS.md](/home/alex/workspace/spoke-sh/atxt/INSTRUCTIONS.md).
 
 ## Keel Upgrade Workflow
 
 When asked to update Keel in this repository, use this sequence:
 
 1. Update the Nix flake so the repo points at the intended Keel version.
-   - Adjust [`flake.nix`](/home/alex/workspace/spoke-sh/atext/flake.nix) and refresh [`flake.lock`](/home/alex/workspace/spoke-sh/atext/flake.lock) if the input pin changes.
+   - Adjust [`flake.nix`](/home/alex/workspace/spoke-sh/atxt/flake.nix) and refresh [`flake.lock`](/home/alex/workspace/spoke-sh/atxt/flake.lock) if the input pin changes.
 2. Build or otherwise exercise the upgraded Keel version from the repo environment.
    - The goal is to prove the new Keel version resolves and runs from this repo, not just that the files changed.
 3. Run `just keel doctor` and fix every failing check before proceeding.
@@ -65,10 +65,10 @@ When asked to update Keel in this repository, use this sequence:
 When asked to update the `txtplot` crate in this repository, use this sequence:
 
 1. Update the `txtplot` dependency to the intended version or git revision.
-   - Adjust [`Cargo.toml`](/home/alex/workspace/spoke-sh/atext/Cargo.toml) and refresh [`Cargo.lock`](/home/alex/workspace/spoke-sh/atext/Cargo.lock).
-   - If the Nix packaging path asks for a new vendoring hash, update the relevant entry in [`flake.nix`](/home/alex/workspace/spoke-sh/atext/flake.nix) before proceeding.
+   - Adjust [`Cargo.toml`](/home/alex/workspace/spoke-sh/atxt/Cargo.toml) and refresh [`Cargo.lock`](/home/alex/workspace/spoke-sh/atxt/Cargo.lock).
+   - If the Nix packaging path asks for a new vendoring hash, update the relevant entry in [`flake.nix`](/home/alex/workspace/spoke-sh/atxt/flake.nix) before proceeding.
 2. Build or otherwise exercise the upgraded renderer dependency from the repo environment.
-   - The goal is to prove the new `txtplot` revision builds inside `atext`, not just that the lockfile changed.
+   - The goal is to prove the new `txtplot` revision builds inside `atxt`, not just that the lockfile changed.
 3. Run the human-visible render verification path and inspect the result for regressions.
    - Run `just mission` so the canonical verification signal is reviewed in both direct and degraded terminal paths.
    - If the signal changes, treat that as a deliberate rendering change and update expectations or fixtures intentionally.

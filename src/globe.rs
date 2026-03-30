@@ -226,7 +226,7 @@ pub fn render_drift_globe(
     }
 
     let mut output = String::new();
-    output.push_str("\x1b[1matext Navigation Chart\x1b[0m\n");
+    output.push_str("\x1b[1matxt Navigation Chart\x1b[0m\n");
     output.push_str(&canvas.render_with_options(true, None));
     
     let drift_vec = client_pos - model_pos;

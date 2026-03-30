@@ -1,5 +1,5 @@
 {
-  description = "atext development environment";
+  description = "atxt development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -102,7 +102,7 @@
 
           shellHook =
             ''
-              export CARGO_TARGET_DIR="$HOME/.cache/cargo-target/atext"
+              export CARGO_TARGET_DIR="$HOME/.cache/cargo-target/atxt"
             ''
             + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
               export TMPDIR=/var/tmp

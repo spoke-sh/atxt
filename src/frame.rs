@@ -221,7 +221,7 @@ mod tests {
             let id = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
             path.push(format!(
-                "atext-frame-test-{}-{}.{}",
+                "atxt-frame-test-{}-{}.{}",
                 process::id(),
                 id,
                 extension

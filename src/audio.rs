@@ -605,7 +605,7 @@ mod tests {
         fn stereo_pulse() -> Self {
             let id = TEMP_AUDIO_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
-            path.push(format!("atext-audio-test-{}-{}.wav", process::id(), id));
+            path.push(format!("atxt-audio-test-{}-{}.wav", process::id(), id));
 
             let spec = WavSpec {
                 channels: 2,
@@ -635,7 +635,7 @@ mod tests {
             let id = TEMP_AUDIO_COUNTER.fetch_add(1, Ordering::Relaxed);
             let mut path = env::temp_dir();
             path.push(format!(
-                "atext-audio-budget-test-{}-{}.wav",
+                "atxt-audio-budget-test-{}-{}.wav",
                 process::id(),
                 id
             ));
