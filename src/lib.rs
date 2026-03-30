@@ -5,15 +5,21 @@
 
 pub mod audio;
 pub mod audio_render;
-pub mod cli;
 pub mod frame;
-pub mod globe;
 pub mod media;
 pub mod render;
 pub mod sequence;
-pub mod stats;
 pub mod still_image;
 pub mod terminal;
+
+#[cfg(feature = "cli")]
+pub mod cli;
+#[cfg(feature = "cli")]
+pub mod globe;
+#[cfg(feature = "cli")]
+pub mod stats;
+
+#[cfg(feature = "video")]
 pub mod video;
 
 pub use audio::{
@@ -21,7 +27,6 @@ pub use audio::{
     WaveformSummary, decode_audio_summary,
 };
 pub use audio_render::{AudioRenderError, render_audio_summary};
-pub use cli::{CliError, run_cli};
 pub use frame::{Rgba8, StillImageDecodeError, VisualFrame, VisualFrameError, decode_still_image};
 pub use media::{
     AudioMetadata, MediaKind, MediaTiming, PixelDimensions, ProbeCompleteness, ProbeResult,
@@ -32,11 +37,18 @@ pub use sequence::{
     TimedFrameSample, TimedSequenceDecodeError, TimedSequenceSummaryError, TimedVisualSequence,
     TimedVisualSequenceError, decode_timed_sequence, summarize_timed_sequence,
 };
-pub use stats::render_stats;
-pub use globe::render_drift_globe;
 pub use still_image::{StillImageRenderError, render_still_image};
-pub use video::{VideoDecodeError, VideoRenderError, VideoSummary, decode_video_summary, render_video_summary};
 pub use terminal::{
     ColorSupport, Multiplexer, SessionMode, TerminalEnvironment, TerminalProfile, TerminalSize,
     detect_terminal_profile,
 };
+
+#[cfg(feature = "cli")]
+pub use cli::{CliError, run_cli};
+#[cfg(feature = "cli")]
+pub use stats::render_stats;
+#[cfg(feature = "cli")]
+pub use globe::render_drift_globe;
+
+#[cfg(feature = "video")]
+pub use video::{VideoDecodeError, VideoRenderError, VideoSummary, decode_video_summary, render_video_summary};
