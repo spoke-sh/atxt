@@ -142,7 +142,10 @@ pub fn probe_path(path: &Path) -> ProbeResult {
     match classification {
         Some((MediaKind::AnimatedImage, mime)) => probe_gif_metadata(path, mime),
         Some((MediaKind::Audio, mime)) => probe_audio_metadata(path, mime),
+        #[cfg(feature = "video")]
         Some((MediaKind::Video, mime)) => probe_video_metadata(path, mime),
+        #[cfg(not(feature = "video"))]
+        Some((MediaKind::Video, _)) => ProbeResult::default(),
         Some((kind, mime)) => ProbeResult::new(kind)
             .with_mime(mime)
             .with_completeness(ProbeCompleteness::Partial),
@@ -212,6 +215,7 @@ fn probe_gif_metadata(path: &Path, mime: &str) -> ProbeResult {
         .with_timing(timing)
 }
 
+#[cfg(feature = "video")]
 fn probe_video_metadata(path: &Path, mime: &str) -> ProbeResult {
     use std::process::Command;
     use serde_json::Value;
@@ -502,14 +506,20 @@ mod tests {
         let gif = probe_path(Path::new("loop.gif"));
         assert_eq!(gif.kind, MediaKind::AnimatedImage);
         assert_eq!(gif.completeness, ProbeCompleteness::Partial);
+        #[cfg(feature = "video")]
         assert_eq!(probe_path(Path::new("clip.mp4")).kind, MediaKind::Video);
+        #[cfg(not(feature = "video"))]
+        assert_eq!(probe_path(Path::new("clip.mp4")).kind, MediaKind::Unknown);
         assert_eq!(probe_path(Path::new("tone.wav")).kind, MediaKind::Audio);
         assert_eq!(probe_path(Path::new("spec.pdf")).kind, MediaKind::Document);
         assert_eq!(probe_path(Path::new("blob.bin")).kind, MediaKind::Unknown);
 
-        let video = probe_path(Path::new("clip.mp4"));
-        assert_eq!(video.completeness, ProbeCompleteness::Partial);
-        assert_eq!(video.mime.as_deref(), Some("video/mp4"));
+        #[cfg(feature = "video")]
+        {
+            let video = probe_path(Path::new("clip.mp4"));
+            assert_eq!(video.completeness, ProbeCompleteness::Partial);
+            assert_eq!(video.mime.as_deref(), Some("video/mp4"));
+        }
     }
 
     #[test]
@@ -567,6 +577,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "video")]
     #[test]
     fn probe_path_collects_multimodal_metadata_for_video() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"));
