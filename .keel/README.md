@@ -54,9 +54,9 @@
 | [Feature-Gate CLI and External Dependencies](epics/VFNe2qYHS/voyages/VFNeIPz9b/) | done |
 | [Library Rendering API and Downstream Proof](epics/VFNe2qYHS/voyages/VFNeJVpOI/) | done |
 
-### [Performance Playback Optimization](epics/VFOMXUMN2/) (draft)
+### [Performance Playback Optimization](epics/VFOMXUMN2/) (active)
 
 | Voyage | Status |
 |--------|--------|
-| [Smooth Playback Engine](epics/VFOMXUMN2/voyages/VFOMcaRRV/) | draft |
+| [Smooth Playback Engine](epics/VFOMXUMN2/voyages/VFOMcaRRV/) | planned |
 

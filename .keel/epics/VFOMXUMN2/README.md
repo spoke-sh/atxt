@@ -25,5 +25,5 @@ mission: VFOMUHdIe
 **Progress:** 0/1 voyages complete, 0/3 stories done
 | Voyage | Status | Stories |
 |--------|--------|---------|
-| [Smooth Playback Engine](voyages/VFOMcaRRV/) | draft | 0/3 |
+| [Smooth Playback Engine](voyages/VFOMcaRRV/) | planned | 0/3 |
 <!-- END GENERATED -->

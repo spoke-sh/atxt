@@ -6,55 +6,60 @@
 
 ## Overview
 
-<!-- How this voyage achieves its requirements; the big picture -->
+The Smooth Playback Engine enhances the media rendering experience by ensuring that animated content plays at the correct speed and fits perfectly within the terminal's viewport. It also introduces data optimization via ANSI delta-encoding to prevent "tearing" and flickering caused by excessive terminal updates.
 
 ## Context & Boundaries
 
-<!-- What's in scope, what's out of scope, external actors/systems we interact with -->
+The engine sits between the media decoding layer (e.g., GIF/video frames) and the terminal output layer. It interacts with `TerminalEnvironment` to determine available space.
 
 ```
 ┌─────────────────────────────────────────┐
-│              This Voyage                │
+│              Smooth Playback Engine     │
 │                                         │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐ │
-│  │         │  │         │  │         │ │
+│  │ Scaling │→ │ Timing  │→ │ Delta   │ │
+│  │ Logic   │  │ Control │  │ Encoder │ │
 │  └─────────┘  └─────────┘  └─────────┘ │
 └─────────────────────────────────────────┘
-        ↑               ↑
-   [External]      [External]
+        ↑               ↑             ↓
+   [Media Source]  [Clock/Timer]   [Terminal]
 ```
 
 ## Dependencies
 
-<!-- External systems, libraries, services this design relies on -->
-
 | Dependency | Type | Purpose | Version/API |
 |------------|------|---------|-------------|
+| `image`    | Crate | GIF decoding and metadata extraction | |
+| `tokio`    | Crate | Async sleep/scheduling for timing | |
 
 ## Key Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
+| Delta Encoding | Cell-level comparison | Minimizes bandwidth usage and reduces flickering on slower terminal connections. |
 
 ## Architecture
 
-<!-- Component relationships, layers, modules -->
+1. **Scaler:** Responsible for calculating target dimensions based on `TerminalEnvironment`.
+2. **Scheduler:** Uses `tokio::time::sleep` (or equivalent) to wait between frame emissions based on the frame's delay.
+3. **Delta Encoder:** Buffers the previous frame and only generates ANSI sequences for cells that have changed color or character.
 
 ## Components
 
-<!-- For each major component: purpose, interface, behavior -->
+### Scaling Engine
+Automatically calculates the largest possible dimensions that fit within terminal rows/cols while maintaining the original media's aspect ratio.
 
-## Interfaces
+### Playback Loop
+A loop that iterates through decoded frames, applying the delay specified in the frame metadata before proceeding to the next.
 
-<!-- API contracts, message formats, protocols (if this voyage exposes/consumes APIs) -->
+### ANSI Optimizer
+A stateful renderer that tracks the last cell state (color/character) and only emits the minimal set of ANSI escape sequences to reach the next state.
 
 ## Data Flow
 
-<!-- How data moves through the system; sequence diagrams if helpful -->
-
-## Error Handling
-
-<!-- What can go wrong, how we detect it, how we recover -->
-
-| Error Condition | Detection | Response | Recovery |
-|-----------------|-----------|----------|----------|
+1. Input: Sequence of `(Frame, Delay)`.
+2. Apply `Scaling Engine` to `Frame`.
+3. Feed `Scaled Frame` into `ANSI Optimizer`.
+4. `ANSI Optimizer` emits optimized stream to stdout.
+5. `Playback Loop` sleeps for `Delay` duration.
+6. Repeat for next frame.
