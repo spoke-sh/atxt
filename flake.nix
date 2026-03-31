@@ -8,7 +8,7 @@
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
     keel = {
-      url = "git+ssh://git@github.com/spoke-sh/keel.git?ref=main";
+      url = "github:spoke-sh/keel";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
       inputs.rust-overlay.follows = "rust-overlay";
@@ -67,7 +67,7 @@
 
         cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
           outputHashes = {
-            "git+https://github.com/rupurt/txtplot.git?rev=a7629f47a9e70979317c3b3b42c27d2f87f84fac#a7629f47a9e70979317c3b3b42c27d2f87f84fac" = "sha256-bC6zo1yhJg41iz69XbXqwIKOfNVXwFke0vzcSMbqvFE=";
+            "txtplot-0.1.0" = "sha256-bC6zo1yhJg41iz69XbXqwIKOfNVXwFke0vzcSMbqvFE=";
           };
         });
         package = craneLib.buildPackage (
